@@ -6,15 +6,10 @@ const userSchema = new mongoose.Schema({
         unique:true,
         required:true
     }
-    // password:{
-    //     type:String,
-    //     required:true
-    // }
 })
 
 userSchema.pre('save',function(next){
     const user = this;
-    if(user?.password){
     if(!user.isModified('password')){
         return next()
     }
@@ -32,7 +27,6 @@ userSchema.pre('save',function(next){
 
     })
 
-    }
 
 })
 
