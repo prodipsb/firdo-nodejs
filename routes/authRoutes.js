@@ -20,10 +20,9 @@ router.get('/test',(req,res)=>{
 router.post('/api/v1/user/signup',async (req,res)=>{
    
   console.log('req.body', req.body)
-    const {email,password} = req.body;
-
+    const {name,email,password,provider,provider_id,avatar} = req.body;
     try{
-      const user = new User({email,password});
+      const user = new User({name,email,password,provider,provider_id,avatar});
       await  user.save();
       const token = jwt.sign({userId:user._id},jwtkey)
       res.send({token})
