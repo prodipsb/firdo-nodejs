@@ -49,7 +49,6 @@ router.post('/api/v1/user/signin',async (req,res)=>{
         return res.status(422).send({error :"must provide email or password"})
     }
     const user = await User.findOne({email})
-  //  console.log('user',user)
     if(!user){
         return res.status(422).send({error :"User not found"})
     }
