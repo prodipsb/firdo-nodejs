@@ -12,6 +12,10 @@ const fsExtra = require('fs-extra');
 var path = require("path");
 var multer  = require('multer');
 
+
+const fs = require("fs");
+
+
 router.get('/',(req,res)=>{
   console.log("Frydo - no men land! conn")
   res.send('Frydo - no men land!')
@@ -23,6 +27,8 @@ router.get('/test',(req,res)=>{
   res.send('this is test')
   res.end()
 })
+
+
 
 router.post('/api/v1/user/signup',async (req,res)=>{
    
@@ -40,6 +46,7 @@ router.post('/api/v1/user/signup',async (req,res)=>{
     
     
 })
+
 
 
 router.post('/api/v1/user/signin',async (req,res)=>{
@@ -65,56 +72,21 @@ router.post('/api/v1/user/signin',async (req,res)=>{
 })
 
 
-router.get('/getuser',(req,res)=>{
+router.get('/getuser', async(req,res)=>{
 
-  const _id = req?.query?.id;
+  const email = req?.query?.email;
+  try{
+    const user = await User.findOne({email: email});
+    console.log('user', user)
+    return res.status(200).send({message:'success',data:user})
 
-  User.findById(_id, function (err, docs) {
-    if (err){
-        console.log(err);
-    }
-    else{
-
-        //console.log("Result : ", docs);
-        res.status(200).send({message:'success',data:docs})
-    }
-});
-
-  //const user = User.findOne({_id})
-  //console.log('user',user)
-  //const idd = req.query.id;
-  //res.send(idd)
-   //res.status(200).send({message:user})
-  // res.end()
+  }catch(err){
+    return res.status(422).send(err)
+  }
+ 
 })
 
 
-
- const fs = require("fs");
- var path = require('path');
-
-
- var storage = multer.diskStorage({   
-  destination: function(req, file, cb) { 
- 
-    const folder = './assets/uploads/avatar/'+ req?.body?.id
-    if (!fs.existsSync(folder)) {
-        fs.mkdirSync(folder)
-    }
-    fsExtra.emptyDirSync(folder);
-    cb(null, folder);    
-  }, 
-  filename: function (req, file, cb) { 
-    const ext = path.extname(file.originalname); 
-    const authName = (req?.body?.name)?.replace(/\s+/g, '-')?.toLowerCase();
-    const filename = `${req?.body?.id}${ext}`;
-  //  const filename = `${authName}-${Date.now()}${ext}`;
-    console.log('eeeeerrrfile', filename);
-     cb(null, filename)
-  }
-});
-
-var upload = multer({ storage: storage });
 
 router.post('/updateuser', (req, res) => {
 
@@ -125,20 +97,12 @@ router.post('/updateuser', (req, res) => {
     about:req?.body?.about,
   };
 
-  console.log('user data', data);
-
       User.findOneAndUpdate({_id: req?.body?.id}, {$set:data}, {new: true}, (err, doc) => {
           if (err) {
               console.log("Something wrong when updating data!");
           }
       
-          console.log('updated user info', doc);
-      
-       //  return res.send({doc})
-       // return  res.status(200).send({message:'success11'})
-        // return next();
-
-        //return res.status(200).json({ result:doc });
+         console.log('updated user info', doc);
          return res.status(200).send({message:'success',data:doc})
 
      //  return res.status(200).json({status: 200, message: 'File saved successfully'});
@@ -148,6 +112,39 @@ router.post('/updateuser', (req, res) => {
 });
 
 
+
+
+
+//  var storage = multer.diskStorage({   
+//   destination: function(req, file, cb) { 
+ 
+//     const folder = './assets/uploads/avatar/'+ req?.body?.id
+//     if (!fs.existsSync(folder)) {
+//         fs.mkdirSync(folder)
+//     }
+//     fsExtra.emptyDirSync(folder);
+//     cb(null, folder);    
+//   }, 
+//   filename: function (req, file, cb) { 
+//     const ext = path.extname(file.originalname); 
+//     const authName = (req?.body?.name)?.replace(/\s+/g, '-')?.toLowerCase();
+//     const filename = `${req?.body?.id}-${Date.now()}${ext}`;
+//   //  const filename = `${authName}-${Date.now()}${ext}`;
+//     console.log('eeeeerrrfile', filename);
+//      cb(null, filename)
+//   }
+// });
+
+// var upload = multer({ storage: storage });
+
+
+
+
+
+
+
+
+/*
 router.post('/upload', upload.single("fileData"), async (req, res, next) => {
 
 
@@ -180,42 +177,32 @@ router.post('/upload', upload.single("fileData"), async (req, res, next) => {
 
 
 
-         let data = req?.file?.path ? 
-               {
-                 name: req?.body?.name, 
-                 email:req?.body?.email,
-                 about:req?.body?.about,
-                 avatar: req?.file?.path
-               } : {
-                 name: req?.body?.name, 
-                 email:req?.body?.email,
-                 about:req?.body?.about,
-               };
+         let data ={ avatar: req?.file?.path }
         
         console.log('prooo data', data)
 
 
-    //     User.findOneAndUpdate({_id: req?.body?.id}, {$set:data}, {new: true}, (err, doc) => {
-    //       if (err) {
-    //           console.log("Something wrong when updating data!");
-    //       }
+        User.findOneAndUpdate({_id: req?.body?.id}, {$set:data}, {new: true, useFindAndModify: false}, (err, doc) => {
+          if (err) {
+              console.log("Something wrong when updating data!");
+          }
       
-    //       console.log('updated user info', doc);
+          console.log('updated user info', doc);
       
-    //    //  return res.send({doc})
-    //    // return  res.status(200).send({message:'success11'})
-    //     // return next();
+       //  return res.send({doc})
+       // return  res.status(200).send({message:'success11'})
+        // return next();
 
-    //     //return res.status(200).json({ result:doc });
-    //    //  return res.status(200).send({message:'success',data:doc})
+        //return res.status(200).json({ result:doc });
+        // return res.status(200).send({message:'success',data:doc})
 
-    //  //  return res.status(200).json({status: 200, message: 'File saved successfully'});
-    //   });
+     //  return res.status(200).json({status: 200, message: 'File saved successfully'});
+      });
 
       console.log('hello node js')
 
      // return res.status(200).json({status: 200, message: 'File saved successfully'});
-
+      return next();
       return res.status(200).send({message:'success'})
 
   }catch (err) {
@@ -223,126 +210,10 @@ router.post('/upload', upload.single("fileData"), async (req, res, next) => {
   }
 
 
- 
 
-
-    
-
-
-
-
-
-
-/*
-
-
-  upload(req, res, async (err) => {
-    console.log('req.body', req.body)
-   // return res.send({message:req?.body})
-    if(err) {
-      res.status(400).send("Something went wrong!");
-    }
-    console.log(req.file);
- //   res.send(req.fileData);
-
-  let data = '';
-   data = req?.file?.path ? 
-        {
-          name: req?.body?.name, 
-          email:req?.body?.email,
-          about:req?.body?.about,
-          avatar: req?.file?.path
-        } : {
-          name: req?.body?.name, 
-          email:req?.body?.email,
-          about:req?.body?.about,
-        };
-
-  console.log('data2233', data);
-  //return false;
-
-  
-   //return res.send({message:data});
-
-
-  User.findOneAndUpdate({_id: req?.body?.id}, {$set:data}, {new: true}, (err, doc) => {
-    if (err) {
-        console.log("Something wrong when updating data!");
-    }
-
-    console.log('updated user info', doc);
-    // console.log('updated user res', res);
-
-  //  res.send({doc})
-   // res.status(200).send({message:'success11'})
-    res.status(200).send({message:'success11',data:doc})
 });
-
- //res.send({'message':'success'});
-
-//  const userinfo = User.findByIdAndUpdate(req?.body?.id , 
-//                       data,
-//                       {upsert: true})
-//       .exec(function (err, user) {
-//           if (err) throw err;
-//           console.log('after updated user', user);
-//       });
-
-
-//       console.log('userinfo', userinfo);
-
-
-//       res.status(200).send({'message':'success', 'data':userinfo})
-
-
-
-
-
-
-    });
-
-
-  // }catch(err){
-  //     return res.status(422).send({error :"Email or Password Invalid"})
-  // }
-
-
 
 */
-
-
-
-
-
-  //below code will read the data from the upload folder. Multer     will automatically upload the file in that folder with an  autogenerated name
-  // fs.readFile(req.file.path,(err, contents)=> {
-  //  if (err) {
-  //  console.log('Error: ', err);
-  // }else{
-  //  console.log('File contents ',contents);
-  // }
-
-
-  // var file = __dirname + "/" + req.file.originalname;
-  // fs.readFile(req.file.path, function (err, data) {
-  //     fs.writeFile(file, data, function (err) {
-  //         if (err) {
-  //             console.log(err);
-  //         } else {
-  //             var response = {
-  //                 message: 'File uploaded successfully',
-  //                 filename: req.file.originalname
-  //             };
-  //         }
-  //         console.log(response);
-  //         res.json(response);
-  //     });
-  // });
-
-
-});
-
-
 
 
 module.exports = router
