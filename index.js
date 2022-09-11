@@ -17,6 +17,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 require('./models/User');
 require('./models/Item');
+require('./models/UserItem')
+require('./models/Inspiration')
+require('./models/CalendarEvent')
+require('./models/ItemType')
+require('./models/Packing')
+require('./models/Color')
+
 
 
 const requireToken = require('./middleware/requireToken')

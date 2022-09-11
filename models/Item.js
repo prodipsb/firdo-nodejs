@@ -6,12 +6,17 @@ const itemSchema = new mongoose.Schema({
         default: null
     },
     color:{
-        type:String,
+        type: mongoose.Schema.Types.ObjectId,
         required:false,
-        default:null
+        default:null,
+        ref:"colors"
     },
-    inspiration:{
-        type:String,
+    inspiration_id:{
+      //  type: mongoose.Schema.Types.ObjectId,
+      //  type:String,
+        // type: mongoose.Schema.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Inspiration',
         required: false,
         default: null
     },
@@ -29,9 +34,14 @@ const itemSchema = new mongoose.Schema({
         type:String,
         required: true,
         default: null
-    }
+    }    
 
+},
+{
+    timestamps: true
 })
 
 
-mongoose.model('Item',itemSchema);
+const Item = mongoose.model('Item',itemSchema);
+
+module.exports = Item;

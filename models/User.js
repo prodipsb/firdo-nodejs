@@ -37,6 +37,9 @@ const userSchema = new mongoose.Schema({
         default: null
     }
 
+},
+{
+    timestamps: true
 })
 
 userSchema.pre('save',function(next){

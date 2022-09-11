@@ -6,6 +6,7 @@ const router = express.Router();
 const User = mongoose.model('User');
 
 const Item = mongoose.model('Item');
+const Packing = mongoose.model('Packing');
 
 
 // import fsExtra from 'fs-extra'
@@ -112,13 +113,13 @@ router.post('/upload', upload.single("fileData"), async (req, res, next) => {
     }, 
     filename: function (req, file, cb) { 
       const ext = path.extname(file.originalname); 
-      const filename = `${file.originalname}-${Date.now()}${ext}`;
+     // const filename = `${file.originalname}-${Date.now()}${ext}`;
+      const filename = `${file.originalname}`;
        cb(null, filename)
     }
   });
   
   var uploadItem = multer({ storage: storageItem });
-  
 
 
   router.post('/item/save', uploadItem.single('fileData'), async (req, res, next) => {
@@ -130,26 +131,97 @@ router.post('/upload', upload.single("fileData"), async (req, res, next) => {
         {
           title: req?.body?.title, 
           color:req?.body?.color,
-          inspiration:req?.body?.inspiration,
+          inspiration_id:req?.body?.inspiration_id,
           type:req?.body?.type,
           details:req?.body?.details,
           photo: req?.file?.path
         } : {
           title: req?.body?.title, 
           color:req?.body?.color,
-          inspiration:req?.body?.inspiration,
+          inspiration_id:req?.body?.inspiration_id,
           type:req?.body?.type,
           details:req?.body?.details,
         };
 
   console.log('data2233', data);
   
-  const {title,color,inspiration,type,details,photo} = data;
-  const item = new Item({title,color,inspiration,type,details,photo});
+  const {title,color,inspiration_id,type,details,photo} = data;
+  const item = new Item({title,color,inspiration_id,type,details,photo});
   const storeDate = await item.save();
 
   res.status(200).send({'message':'success', 'data':storeDate})
 
+});
+
+
+
+// ------------- packing ----------
+var storagePacking = multer.diskStorage({   
+  destination: function(req, file, cb) { 
+ 
+    const folder = './assets/uploads/packings';
+    if (!fs.existsSync(folder)) {
+        fs.mkdirSync(folder)
+    }
+    cb(null, folder);    
+  }, 
+  filename: function (req, file, cb) { 
+    const filename = `${file.originalname}`;
+     cb(null, filename)
+  }
+});
+
+var uploadPacking = multer({ storage: storagePacking });
+
+
+router.post('/packing/store', uploadPacking.single('fileData'), async (req, res, next) => {
+  //console.log('req.body', req.body)
+ // console.log(req.file);
+
+  const packingID = req?.body?._id;
+
+ // console.log('packing iddd',packingID)
+
+let data = '';
+ data = req?.file?.path ? 
+      {
+        name: req?.body?.name, 
+        user_id:req?.body?.user_id,
+        item_ids:JSON.parse(req?.body?.item_ids),
+        photo: req?.file?.path
+      } : {
+        name: req?.body?.name, 
+        user_id:req?.body?.user_id,
+        item_ids:JSON.parse(req?.body?.item_ids),
+      };
+
+    //console.log('packing data', data);
+   // return false;
+
+    const {name,user_id,photo,item_ids} = data;
+
+    let storePacking = '';
+    if(packingID){
+      if(req?.file?.path) {
+       // photo = req?.file?.path
+
+        const {name,user_id,photo,item_ids} = data;
+      }else{
+        const {name,user_id,item_ids} = data;
+      }
+      const filter = { _id: packingID };
+       storePacking = await Packing.findOneAndUpdate(filter, data, {
+        new: true
+      });
+    }else{
+  
+    const packing = new Packing({name,user_id,photo,item_ids});
+     storePacking = await packing.save();
+    }
+
+    //console.log('create new one', storePacking)
+
+  res.status(200).send({'message':'success', 'data':storePacking})
 
 });
 
