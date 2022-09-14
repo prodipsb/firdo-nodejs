@@ -260,7 +260,7 @@ router.get('/user/calendar/events',async (req,res)=>{
   try{
     // var query = { date: date, user_id:userId };
     var query = { user_id:userId };
-   // console.log(' query', query)
+    console.log(' query', query)
 
 
     
@@ -272,7 +272,9 @@ router.get('/user/calendar/events',async (req,res)=>{
 
 
   const myEvents = await CalendarEvent.aggregate([
-
+   // { $match: { user_id: { $eq: { $toObjectId: userId} } } },
+  //  { $match: { $expr: { $eq: [ '$user_id', '$$userId' ] } } },
+  { $match: { $expr : { $eq: [ '$user_id' , { $toObjectId: userId } ] } } },
     {
       $lookup: {
         from: 'items',
@@ -288,7 +290,7 @@ router.get('/user/calendar/events',async (req,res)=>{
 
   
 
- // console.log('updated', JSON.stringify(myEvents));
+  //console.log('updated', JSON.stringify(myEvents));
  // console.log('updated222', JSON.stringify(myEvents?.items));
   return res.status(200).send({message:"success", data: myEvents});
 
