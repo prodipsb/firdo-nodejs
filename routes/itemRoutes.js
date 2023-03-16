@@ -250,6 +250,24 @@ router.post('/user/calendar/event-store',async (req,res)=>{
 })
 
 
+router.post('/user/calendar/text-event-store',async (req,res)=>{
+   
+  console.log('req.body', req.body)
+    const {date, name, user_id, type, details} = req.body;
+    try{
+      
+      const calendarEvent = new CalendarEvent({date, name, user_id, type, details});
+      const storeCalendarEvent =  await  calendarEvent.save();
+      return res.status(200).send({message:'success',data:storeCalendarEvent})
+
+    }catch(err){
+      return res.status(422).send(err)
+    }
+    
+    
+})
+
+
 router.get('/user/calendar/events',async (req,res)=>{
    
  // console.log('req.body', req.query)
@@ -366,6 +384,7 @@ router.get('/user/calendar/day/events',async (req,res)=>{
 
 
   let params  = {date: '2022-09-02T00:00:00.000+00:00'}
+  let targetDate =  date+'T00:00:00.000Z';
   const myEvents = await CalendarEvent.aggregate([
 
     // {
@@ -405,11 +424,14 @@ router.get('/user/calendar/day/events',async (req,res)=>{
   // },
 
 
-     {
-    //   $project: {
+    { $match: { $expr : { $eq: [ '$user_id' , { $toObjectId: userId } ] } } },
+    { $match: { $expr : { $eq: [ '$date' , { $toDate :'2022-09-02T00:00:00.000Z'} ] } } },
 
-    //     'date': "2022-09-02T00:00:00.000+00:00"
-    // },
+  //  { $match: { $expr : { $eq: [ '$date' ,{ 'date': '2022-09-02T00:00:00.000Z'}] }}},
+  // { $match: { "date": "2022-09-02T00:00:00.000Z" } },
+  // { "$match": { "date": { "date": "2022-09-02T00:00:00.000Z" }}},
+  // {$match : {date : "2022-09-02T00:00:00.000Z"}},
+    {
       $lookup: {
         from: 'items',
         localField: 'item_id',
@@ -419,6 +441,30 @@ router.get('/user/calendar/day/events',async (req,res)=>{
     },
 
     {"$unwind":"$items"},
+
+
+
+// {
+//   $lookup: {
+//     from: 'items',
+//     localField: 'item_id',
+//     foreignField: '_id',
+//     as: 'items',
+//     pipeline: [{
+//         $match: {
+//             $expr: {
+//                 $and: [
+//                     //{ $eq: ['$status', 'filled'] },
+//                     { $eq: ['$date', "2022-09-02T00:00:00.000Z"] },
+//                 ]
+//             }
+//         }
+//     }]
+// }
+// },
+//  {"$unwind":"$items"},
+
+  
 
   //   { 
   //     $match: {
@@ -467,9 +513,10 @@ router.get('/user/calendar/day/events',async (req,res)=>{
   //           },
   //           { $project: { 'date': "2022-09-02T00:00:00.000+00:00" } }
   //        ],
-  //        as: "stockdata"
+  //        as: "items"
   //      }
-  // }
+  // },
+  // {"$unwind":"$items"},
 
 
 

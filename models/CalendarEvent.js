@@ -5,17 +5,32 @@ const calendarEventSchema = new mongoose.Schema({
         required: true,
         default: null
     },
+    name:{
+        type: String,
+        required:false,
+        default:null,
+    },
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         default: null,
         ref: 'users'
     },
+    type:{
+        type: String,
+        required:false,
+        default:null,
+    },
     item_id:{
         type: mongoose.Schema.Types.ObjectId,
         required:false,
         default:null,
         ref: 'items'
+    },
+    details:{
+        type: String,
+        required:false,
+        default:null,
     }
 
 },
