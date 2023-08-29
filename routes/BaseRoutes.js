@@ -432,7 +432,7 @@ router.get('/user/calendar/day/events',async (req,res)=>{
 
 
     { $match: { $expr : { $eq: [ '$user_id' , { $toObjectId: userId } ] } } },
-    { $match: { $expr : { $eq: [ '$date' , { $toDate : targetDate} ] } } },
+    { $match: { $expr : { $eq: [ '$date' , { $toDate :'2022-09-02T00:00:00.000Z'} ] } } },
 
   //  { $match: { $expr : { $eq: [ '$date' ,{ 'date': '2022-09-02T00:00:00.000Z'}] }}},
   // { $match: { "date": "2022-09-02T00:00:00.000Z" } },
@@ -645,32 +645,16 @@ router.get('/user/packing/delete', async(req,res)=>{
 // --------- color route ---------
 router.get('/colors', async(req,res)=>{
 
-  const colors = await Color.aggregate([
 
-    {
-      $lookup: {
-        from: 'items',
-        localField: '_id',
-        foreignField: 'color',
-        as: 'items',
-      },
-    },
+  try{
+    var query = {};
+    const colors = await Color.find(query);
+    console.log('colors', colors)
+    return res.status(200).send({message:'success',data:colors})
 
-  ]);
-
-  console.log('colorss', colors)
-
-  return res.status(200).send({message:'success',data:colors})
-
-  // try{
-  //   var query = {};
-  //   const colors = await Color.find(query);
-  //   console.log('colors', colors)
-  //   return res.status(200).send({message:'success',data:colors})
-
-  // }catch(err){
-  //   return res.status(422).send(err)
-  // }
+  }catch(err){
+    return res.status(422).send(err)
+  }
  
 })
 
