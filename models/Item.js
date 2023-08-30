@@ -25,6 +25,11 @@ const itemSchema = new mongoose.Schema({
         required: false,
         default: null
     },
+    price:{
+        type:Number,
+        required: false,
+        default: 0
+    },
     details:{
         type:String,
         required: false,

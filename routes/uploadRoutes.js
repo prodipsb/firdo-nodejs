@@ -133,6 +133,7 @@ router.post('/upload', upload.single("fileData"), async (req, res, next) => {
           color:req?.body?.color,
           inspiration_id:req?.body?.inspiration_id,
           type:req?.body?.type,
+          price:req?.body?.price,
           details:req?.body?.details,
           photo: req?.file?.path
         } : {
@@ -140,10 +141,10 @@ router.post('/upload', upload.single("fileData"), async (req, res, next) => {
           color:req?.body?.color,
           inspiration_id:req?.body?.inspiration_id,
           type:req?.body?.type,
+          price:req?.body?.price,
           details:req?.body?.details,
         };
 
-  console.log('data2233', data);
   
   const {title,color,inspiration_id,type,details,photo} = data;
   const item = new Item({title,color,inspiration_id,type,details,photo});
