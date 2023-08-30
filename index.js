@@ -24,6 +24,8 @@ require('./models/ItemType')
 require('./models/Packing')
 require('./models/Color')
 
+const cors = require('cors')
+
 
 
 const requireToken = require('./middleware/requireToken')
@@ -31,6 +33,7 @@ const authRoutes = require('./routes/authRoutes')
 const uploadRoutes = require('./routes/uploadRoutes')
 const itemRoutes = require('./routes/itemRoutes')
 
+app.use(cors());
 app.use('/', authRoutes);
 app.use('/api/v1', uploadRoutes);
 app.use('/api/v1', itemRoutes);
