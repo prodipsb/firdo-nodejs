@@ -146,8 +146,8 @@ router.post('/upload', upload.single("fileData"), async (req, res, next) => {
         };
 
   
-  const {title,color,inspiration_id,type,details,photo} = data;
-  const item = new Item({title,color,inspiration_id,type,details,photo});
+  const {title,color,inspiration_id,type,price,details,photo} = data;
+  const item = new Item({title,color,inspiration_id,type,price,details,photo});
   const storeDate = await item.save();
 
   res.status(200).send({'message':'success', 'data':storeDate})
