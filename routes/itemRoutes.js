@@ -34,7 +34,7 @@ router.get('/items', async(req,res)=>{
      query = color ? Object.assign(query, {color: color}) : query
      console.log('query', query)
    // var query = { type: type };
-    const items = await Item.find();
+    const items = await Item.find({});
    // console.log('items', items)
     return res.status(200).send({message:'success',data:items})
 
