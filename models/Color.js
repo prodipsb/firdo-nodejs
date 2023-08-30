@@ -10,6 +10,7 @@ const colorSchema = new mongoose.Schema({
         required:false,
         default:null
     },
+    items: [{ type: mongoose.Schema.Types.ObjectId, ref: 'items' }]
 
 },
 {
