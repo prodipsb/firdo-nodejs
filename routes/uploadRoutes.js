@@ -122,7 +122,7 @@ router.post('/upload', upload.single("fileData"), async (req, res, next) => {
   var uploadItem = multer({ storage: storageItem });
 
 
-  router.post('/item/save', uploadItem.single('fileData'), async (req, res, next) => {
+  router.post('/item/save', async (req, res, next) => {
     console.log('req.body', req.body)
     console.log(req.file);
 
