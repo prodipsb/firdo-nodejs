@@ -31,6 +31,16 @@ const userSchema = new mongoose.Schema({
         required: false,
         default: null
     },
+    friendRequests: {
+        type:Array,
+        require:false,
+        default: null
+    },
+    sentFriendRequests: {
+        type:Array,
+        require:false,
+        default: null
+    },
     about:{
         type:String,
         required: false,

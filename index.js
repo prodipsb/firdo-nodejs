@@ -14,6 +14,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // app.use(cors());
 
+mongoose.set('useFindAndModify', false);
 
 require('./models/User');
 require('./models/Item');
@@ -32,11 +33,13 @@ const requireToken = require('./middleware/requireToken')
 const authRoutes = require('./routes/authRoutes')
 const uploadRoutes = require('./routes/uploadRoutes')
 const itemRoutes = require('./routes/itemRoutes')
+const chatRoutes = require('./routes/chatRoutes')
 
 app.use(cors());
 app.use('/', authRoutes);
 app.use('/api/v1', uploadRoutes);
 app.use('/api/v1', itemRoutes);
+app.use('/api/v1', chatRoutes);
 
 
 

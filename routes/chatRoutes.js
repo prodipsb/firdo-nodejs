@@ -14,11 +14,96 @@ const Color = mongoose.model('Color')
 const {mogoUrl} = require('../keys')
 
 
-router.get('/itemapi',(req,res)=>{
-  console.log("this is test itemapi")
-  res.send('this is test itemapi')
-  res.end()
+
+// endpoint to send a request to a user
+router.post("/friend-request", async (req, res) => {
+    const {AuthId, SelectedUserId} = req.body;
+
+    console.log('first', req.body);
+    // const user = User.find({_id: AuthId});
+    // var query = AuthId ? { _id: AuthId } : {};
+  //  const user = await User.findById(AuthId);
+   // console.log('first user', user);
+
+    try {
+      //update the recepient's friendRequests Array
+      await User.findOneAndUpdate({ _id: SelectedUserId }, {
+        $push: { friendRequests: AuthId},
+      })
+
+      console.log('update the recepient friendRequests');
+
+      //update the sender's SentRequests Array
+      await User.findOneAndUpdate({ _id:AuthId}, {
+        $push: {sentFriendRequests: SelectedUserId},
+      })
+
+      res.sendStatus(200);
+
+    } catch (error) {
+      
+    }
+});
+
+
+// endpoint to show all friend request of a particular user
+router.get("/friend-requests", async (req, res) => {
+  try {
+    
+    const {userId} = req.query;
+
+    const user = await User.findById(userId).populate("friendRequests", "name email avatar").lean();
+    const friendRequests = user.friendRequests;
+
+    console.log('friendRequests', friendRequests)
+
+    res.json(friendRequests);
+
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({message: "Internal Server Error!"})
+  }
 })
+
+// endpoint to show all sent friend request of a particular user
+router.get("/sentfriend-requests", async (req, res) => {
+  try {
+    
+    const {userId} = req.query;
+    console.log('userId', req.query)
+
+    //fetch the user document based on the user id
+    // const user = await User.findById(userId).populate("friendRequests", "name email avatar").lean();
+    // const friendRequests = user.friendRequests;
+
+    const user = await User.findById(userId).populate("sentFriendRequests", "name email avatar").lean();
+    const sentFriendRequests = user.sentFriendRequests;
+
+    console.log('sentFriendRequests', sentFriendRequests)
+
+    res.json(sentFriendRequests);
+
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({message: "Internal Server Error!"})
+  }
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 router.get('/items', async(req,res)=>{

@@ -71,6 +71,18 @@ router.post('/api/v1/user/signin',async (req,res)=>{
 
 })
 
+router.get('/api/v1/getusers', async(req,res)=>{
+
+  try{
+    const users = await User.find({});
+    return res.status(200).send({message:'success',data:users})
+
+  }catch(err){
+    return res.status(422).send(err)
+  }
+ 
+})
+
 
 router.get('/getuser', async(req,res)=>{
 
