@@ -1,8 +1,8 @@
 node_modules/
 .env
-package-lock.json
 assets/
 .well-known/
 stderr.log
 tmp/
 vercel.json
+package-lock.json
