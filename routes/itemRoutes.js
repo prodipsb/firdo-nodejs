@@ -332,7 +332,7 @@ router.get('/user/calendar/day/events',async (req,res)=>{
   console.log('req.body', req.query)
   const date = req?.query?.date;
   const userId = req?.query?.user_id;
-  console.log('userId', userId)
+  // console.log('userId', userId)
 
   try{
      var query = { date: date, user_id:userId };
