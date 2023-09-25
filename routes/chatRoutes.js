@@ -1,7 +1,7 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
-const {jwtkey} = require('../keys')
+const { jwtkey } = require('../keys')
 const router = express.Router();
 const User = mongoose.model('User');
 const Item = mongoose.model('Item');
@@ -11,66 +11,121 @@ const CalendarEvent = mongoose.model('CalendarEvent')
 const ItemType = mongoose.model('ItemType')
 const Packing = mongoose.model('Packing')
 const Color = mongoose.model('Color')
-const {mogoUrl} = require('../keys')
+const { mogoUrl } = require('../keys');
+const { route } = require('./authRoutes');
+const Chat = require('../models/Chat');
+
+router.get("/get-messages", async (req, res) => {
+
+  const { userId, recepientId } = req.query;
+  const chat_room = userId > recepientId ? userId + '_' + recepientId : recepientId + '_' + userId;
+  // console.log('all messge chat room', chat_room);
+
+  try {
+
+    // const messages = await Chat.find({'chat_room_id': chat_room}).sort('-posted').lean();
+    const messages = await Chat.find({ 'chat_room_id': chat_room }).sort({ createdAt: "desc" }).lean();
+
+    //   const messages = await Chat.find().sort({postedon: -1}).find(function (err, sortedposts){
+    //     if (err) 
+    //         return res.json(sortedposts);
+    //  });
+
+    //  console.log('all mess', messages)
+
+    //  const messages = await Chat.find({'chat_room_id': chat_room}).sort({date: 1});
+
+    //   const messages = await Chat.find( { $query: { chat_room_id: chat_room }, $orderby: { dateAdded: -1 } }, function ( results ) {
+    //     return results;
+    // })
+
+
+    // console.log('all messge chat room messages', messages);
+    //return res.status(200).send({message:"success", data: messages});
+    return res.json(messages);
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error!" })
+  }
+
+})
+
+
+
+
+router.get("/get-room-messages", async (req, res) => {
+
+  const { room } = req.query;
+  // console.log('all messge chat room', chat_room);
+
+  try {
+
+   // const messages = await Chat.find({ 'chat_room_id': room }).sort({ createdAt: "desc" }).lean();
+    const messages = await Chat.find({ 'chat_room_id': room }).sort({ createdAt: "desc" }).lean();
+
+    return res.json(messages);
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error!" })
+  }
+
+})
+
+
+
+
+
+
+
 
 
 
 // endpoint to send a request to a user
 router.post("/friend-request", async (req, res) => {
-    const {AuthId, SelectedUserId} = req.body;
+  const { AuthId, SelectedUserId } = req.body;
 
-    console.log('first', req.body);
-    // const user = User.find({_id: AuthId});
-    // var query = AuthId ? { _id: AuthId } : {};
-  //  const user = await User.findById(AuthId);
-   // console.log('first user', user);
+  try {
+    //update the recepient's friendRequests Array
+    await User.findOneAndUpdate({ _id: SelectedUserId }, {
+      $push: { friendRequests: AuthId },
+    })
 
-    try {
-      //update the recepient's friendRequests Array
-      await User.findOneAndUpdate({ _id: SelectedUserId }, {
-        $push: { friendRequests: AuthId},
-      })
+    //update the sender's SentRequests Array
+    await User.findOneAndUpdate({ _id: AuthId }, {
+      $push: { sentFriendRequests: SelectedUserId },
+    })
 
-      console.log('update the recepient friendRequests');
+    res.sendStatus(200);
 
-      //update the sender's SentRequests Array
-      await User.findOneAndUpdate({ _id:AuthId}, {
-        $push: {sentFriendRequests: SelectedUserId},
-      })
+  } catch (error) {
 
-      res.sendStatus(200);
-
-    } catch (error) {
-      
-    }
+  }
 });
 
 
 // endpoint to show all friend request of a particular user
 router.get("/friend-requests", async (req, res) => {
   try {
-    
-    const {userId} = req.query;
+
+    const { userId } = req.query;
 
     const user = await User.findById(userId).populate("friendRequests", "name email avatar").lean();
     const friendRequests = user.friendRequests;
-
-    console.log('friendRequests', friendRequests)
-
     res.json(friendRequests);
-
 
   } catch (error) {
     console.log(error);
-    res.status(500).json({message: "Internal Server Error!"})
+    res.status(500).json({ message: "Internal Server Error!" })
   }
 })
 
 // endpoint to show all sent friend request of a particular user
 router.get("/sentfriend-requests", async (req, res) => {
   try {
-    
-    const {userId} = req.query;
+
+    const { userId } = req.query;
     console.log('userId', req.query)
 
     //fetch the user document based on the user id
@@ -80,14 +135,14 @@ router.get("/sentfriend-requests", async (req, res) => {
     const user = await User.findById(userId).populate("sentFriendRequests", "name email avatar").lean();
     const sentFriendRequests = user.sentFriendRequests;
 
-    console.log('sentFriendRequests', sentFriendRequests)
+    // console.log('sentFriendRequests', sentFriendRequests)
 
     res.json(sentFriendRequests);
 
 
   } catch (error) {
     console.log(error);
-    res.status(500).json({message: "Internal Server Error!"})
+    res.status(500).json({ message: "Internal Server Error!" })
   }
 })
 
@@ -106,199 +161,199 @@ router.get("/sentfriend-requests", async (req, res) => {
 
 
 
-router.get('/items', async(req,res)=>{
+router.get('/items', async (req, res) => {
 
-  try{
-   
+  try {
+
     const type = req?.query?.type;
-    var query = type ? {type:type} : {}
+    var query = type ? { type: type } : {}
 
     const color = req?.query?.color;
     console.log(color)
-    
-     query = color ? Object.assign(query, {color: color}) : query
-     console.log('query', query)
-   // var query = { type: type };
+
+    query = color ? Object.assign(query, { color: color }) : query
+    console.log('query', query)
+    // var query = { type: type };
     const items = await Item.find({});
-   // console.log('items', items)
-    return res.status(200).send({message:'success',data:items})
+    // console.log('items', items)
+    return res.status(200).send({ message: 'success', data: items })
 
-  }catch(err){
+  } catch (err) {
     return res.status(422).send(err)
   }
- 
+
 })
 
 
 
-router.get('/items/by-type', async(req,res)=>{
+router.get('/items/by-type', async (req, res) => {
 
-  try{
-  //   const type = req?.query?.type;
-  //   var query = type ? {type:type} : {}
-  //  // var query = { type: type };
-  //   const items = await Item.find(query);
-  //  // console.log('items', items)
-  //   return res.status(200).send({message:'success',data:items})
-
-
-//   Message.aggregate(
-//     [
-//         { "$match": { "to": user } },
-//         { "$sort": { "date": 1 } },
-//         { "$group": { 
-//             "_id": "from",
-//             "to": { "$first": "$to" },
-//             "message": { "$first": "$message" },
-//             "date": { "$first": "$date" },
-//             "origId": { "$first": "$_id" }
-//         }},
-//         { "$lookup": {
-//              "from": "users",
-//              "localField": "from",
-//              "foreignField": "_id",
-//              "as": "from"
-//         }},
-//         { "$lookup": {
-//              "from": "users",
-//              "localField": "to",
-//              "foreignField": "_id",
-//              "as": "to"
-//         }},
-//         { "$unwind": { "path" : "$from" } },
-//         { "$unwind": { "path" : "$to" } }
-//     ],
-//     function(err,results) {
-//         if (err) throw err;
-//         return results;
-//     }
-// )
+  try {
+    //   const type = req?.query?.type;
+    //   var query = type ? {type:type} : {}
+    //  // var query = { type: type };
+    //   const items = await Item.find(query);
+    //  // console.log('items', items)
+    //   return res.status(200).send({message:'success',data:items})
 
 
-      // const itemTypes = await ItemType.find({});
-      //  console.log('itemTypes', itemTypes)
-      // return res.status(200).send({message:'success',data:itemTypes})
+    //   Message.aggregate(
+    //     [
+    //         { "$match": { "to": user } },
+    //         { "$sort": { "date": 1 } },
+    //         { "$group": { 
+    //             "_id": "from",
+    //             "to": { "$first": "$to" },
+    //             "message": { "$first": "$message" },
+    //             "date": { "$first": "$date" },
+    //             "origId": { "$first": "$_id" }
+    //         }},
+    //         { "$lookup": {
+    //              "from": "users",
+    //              "localField": "from",
+    //              "foreignField": "_id",
+    //              "as": "from"
+    //         }},
+    //         { "$lookup": {
+    //              "from": "users",
+    //              "localField": "to",
+    //              "foreignField": "_id",
+    //              "as": "to"
+    //         }},
+    //         { "$unwind": { "path" : "$from" } },
+    //         { "$unwind": { "path" : "$to" } }
+    //     ],
+    //     function(err,results) {
+    //         if (err) throw err;
+    //         return results;
+    //     }
+    // )
 
 
-
-      // const typeItems = await ItemType.aggregate(
-      //   [
-      //      // { "$match": { "to": user } },
-      //      // { "$sort": { "date": 1 } },
-      //      { "$group": { 
-      //          "type": "$slug",
-      //           // "to": { "$first": "$to" },
-      //           // "message": { "$first": "$message" },
-      //           // "date": { "$first": "$date" },
-      //           // "origId": { "$first": "$_id" }
-      //      }},
-      //       { "$lookup": {
-      //           "from": "items",
-      //           "localField": "slug",
-      //           "foreignField": "type",
-      //           "as": "typeItems"
-      //       }},
-      //       // { "$lookup": {
-      //       //     "from": "users",
-      //       //     "localField": "to",
-      //       //     "foreignField": "_id",
-      //       //     "as": "to"
-      //       // }},
-      //       { "$unwind": { "path" : "$typeItems" } },
-      //     //  { "$unwind": { "path" : "$to" } }
-          
-      //   ],
-      //   function(err,results) {
-      //       if (err) throw err;
-      //       return results;
-      //   }
-      // )
-
-      //  console.log('typeItems', typeItems)
-      //  return res.status(200).send({message:'success',data:typeItems})
+    // const itemTypes = await ItemType.find({});
+    //  console.log('itemTypes', itemTypes)
+    // return res.status(200).send({message:'success',data:itemTypes})
 
 
 
-      const typeItems = await ItemType.aggregate([
+    // const typeItems = await ItemType.aggregate(
+    //   [
+    //      // { "$match": { "to": user } },
+    //      // { "$sort": { "date": 1 } },
+    //      { "$group": { 
+    //          "type": "$slug",
+    //           // "to": { "$first": "$to" },
+    //           // "message": { "$first": "$message" },
+    //           // "date": { "$first": "$date" },
+    //           // "origId": { "$first": "$_id" }
+    //      }},
+    //       { "$lookup": {
+    //           "from": "items",
+    //           "localField": "slug",
+    //           "foreignField": "type",
+    //           "as": "typeItems"
+    //       }},
+    //       // { "$lookup": {
+    //       //     "from": "users",
+    //       //     "localField": "to",
+    //       //     "foreignField": "_id",
+    //       //     "as": "to"
+    //       // }},
+    //       { "$unwind": { "path" : "$typeItems" } },
+    //     //  { "$unwind": { "path" : "$to" } }
 
-        {
-          $lookup: {
-            from: 'items',
-            localField: 'slug',
-            foreignField: 'type',
-            as: 'items',
-          },
+    //   ],
+    //   function(err,results) {
+    //       if (err) throw err;
+    //       return results;
+    //   }
+    // )
+
+    //  console.log('typeItems', typeItems)
+    //  return res.status(200).send({message:'success',data:typeItems})
+
+
+
+    const typeItems = await ItemType.aggregate([
+
+      {
+        $lookup: {
+          from: 'items',
+          localField: 'slug',
+          foreignField: 'type',
+          as: 'items',
         },
-    
-      ]);
-    
-      
-    
-     //  console.log('typeItems', typeItems);
-      return res.status(200).send({message:"success", data: typeItems});
+      },
 
-      
+    ]);
 
-  }catch(err){
+
+
+    //  console.log('typeItems', typeItems);
+    return res.status(200).send({ message: "success", data: typeItems });
+
+
+
+  } catch (err) {
     return res.status(422).send(err)
   }
- 
+
 })
 
 
-router.get('/item', async(req,res)=>{
+router.get('/item', async (req, res) => {
 
   const id = req?.query?.id;
 
-  try{
+  try {
     var query = id ? { _id: id } : {};
     const item = await Item.findOne(query);
-   // console.log('items', items)
-    return res.status(200).send({message:'success',data:item})
+    // console.log('items', items)
+    return res.status(200).send({ message: 'success', data: item })
 
-  }catch(err){
+  } catch (err) {
     return res.status(422).send(err)
   }
- 
+
 })
 
 
 
-router.get('/items/shoe', async(req,res)=>{
+router.get('/items/shoe', async (req, res) => {
 
-  try{
+  try {
     var query = { type: "shoe" };
     const shoes = await Item.find(query);
-    return res.status(200).send({message:'success',data:shoes})
+    return res.status(200).send({ message: 'success', data: shoes })
 
-  }catch(err){
+  } catch (err) {
     return res.status(422).send(err)
   }
- 
+
 })
 
 
 
-router.post('/user/item-store',async (req,res)=>{
-   
-  console.log('req.body', req.body)
-    const {user_id,item_id,shoe_id,pant_id} = req.body;
-    try{
-      
-      const userItems = new UserItem({user_id,item_id,shoe_id,pant_id});
-      const storeUserItems =  await  userItems.save();
-      return res.status(200).send({message:'success',data:storeUserItems})
+router.post('/user/item-store', async (req, res) => {
 
-    }catch(err){
-      return res.status(422).send(err)
-    }
-    
-    
+  console.log('req.body', req.body)
+  const { user_id, item_id, shoe_id, pant_id } = req.body;
+  try {
+
+    const userItems = new UserItem({ user_id, item_id, shoe_id, pant_id });
+    const storeUserItems = await userItems.save();
+    return res.status(200).send({ message: 'success', data: storeUserItems })
+
+  } catch (err) {
+    return res.status(422).send(err)
+  }
+
+
 })
 
 
 //inpiration route
-router.get('/inspirations', async(req,res)=>{
+router.get('/inspirations', async (req, res) => {
 
   const inspirations = await Inspiration.aggregate([
 
@@ -313,126 +368,126 @@ router.get('/inspirations', async(req,res)=>{
 
   ]);
 
-  
+
 
   // console.log('updated', inspirations);
-  return res.status(200).send({message:"success", data: inspirations});
+  return res.status(200).send({ message: "success", data: inspirations });
 
- 
+
 })
 
 
 
 // ------ calendar event -------
-router.post('/user/calendar/event-store',async (req,res)=>{
-   
-  console.log('req.body', req.body)
-    const {date, user_id, item_id} = req.body;
-    try{
-      
-      const calendarEvent = new CalendarEvent({date, user_id, item_id});
-      const storeCalendarEvent =  await  calendarEvent.save();
-      return res.status(200).send({message:'success',data:storeCalendarEvent})
+router.post('/user/calendar/event-store', async (req, res) => {
 
-    }catch(err){
-      return res.status(422).send(err)
-    }
-    
-    
+  console.log('req.body', req.body)
+  const { date, user_id, item_id } = req.body;
+  try {
+
+    const calendarEvent = new CalendarEvent({ date, user_id, item_id });
+    const storeCalendarEvent = await calendarEvent.save();
+    return res.status(200).send({ message: 'success', data: storeCalendarEvent })
+
+  } catch (err) {
+    return res.status(422).send(err)
+  }
+
+
 })
 
 
-router.post('/user/calendar/text-event-store',async (req,res)=>{
-   
-  console.log('req.body', req.body)
-    const {date, name, user_id, type, details} = req.body;
-    try{
-      
-      const calendarEvent = new CalendarEvent({date, name, user_id, type, details});
-      const storeCalendarEvent =  await  calendarEvent.save();
-      return res.status(200).send({message:'success',data:storeCalendarEvent})
+router.post('/user/calendar/text-event-store', async (req, res) => {
 
-    }catch(err){
-      return res.status(422).send(err)
-    }
-    
-    
+  console.log('req.body', req.body)
+  const { date, name, user_id, type, details } = req.body;
+  try {
+
+    const calendarEvent = new CalendarEvent({ date, name, user_id, type, details });
+    const storeCalendarEvent = await calendarEvent.save();
+    return res.status(200).send({ message: 'success', data: storeCalendarEvent })
+
+  } catch (err) {
+    return res.status(422).send(err)
+  }
+
+
 })
 
 
-router.get('/user/calendar/events',async (req,res)=>{
-   
- // console.log('req.body', req.query)
- // const date = req?.query?.date;
+router.get('/user/calendar/events', async (req, res) => {
+
+  // console.log('req.body', req.query)
+  // const date = req?.query?.date;
   const userId = req?.query?.user_id;
- // console.log('userId', userId)
+  // console.log('userId', userId)
 
-  try{
+  try {
     // var query = { date: date, user_id:userId };
-    var query = { user_id:userId };
+    var query = { user_id: userId };
     console.log(' query', query)
 
 
-    
+
     //  const item = await CalendarEvent.find(query);
     //  console.log('found item', item);
     //  return false;
-  //   return res.status(200).send({message:'success',data:item})
+    //   return res.status(200).send({message:'success',data:item})
 
 
 
-  const myEvents = await CalendarEvent.aggregate([
-   // { $match: { user_id: { $eq: { $toObjectId: userId} } } },
-  //  { $match: { $expr: { $eq: [ '$user_id', '$$userId' ] } } },
-  { $match: { $expr : { $eq: [ '$user_id' , { $toObjectId: userId } ] } } },
-    {
-      $lookup: {
-        from: 'items',
-        localField: 'item_id',
-        foreignField: '_id',
-        as: 'items',
+    const myEvents = await CalendarEvent.aggregate([
+      // { $match: { user_id: { $eq: { $toObjectId: userId} } } },
+      //  { $match: { $expr: { $eq: [ '$user_id', '$$userId' ] } } },
+      { $match: { $expr: { $eq: ['$user_id', { $toObjectId: userId }] } } },
+      {
+        $lookup: {
+          from: 'items',
+          localField: 'item_id',
+          foreignField: '_id',
+          as: 'items',
+        },
       },
-    },
-    // {"$unwind":"$items"},
-    // {"$match":{"items._id":"630085bdc98eed7fcbed897e"}}
+      // {"$unwind":"$items"},
+      // {"$match":{"items._id":"630085bdc98eed7fcbed897e"}}
 
-  ]);
+    ]);
 
-  
 
-  //console.log('updated', JSON.stringify(myEvents));
- // console.log('updated222', JSON.stringify(myEvents?.items));
-  return res.status(200).send({message:"success", data: myEvents});
 
-  }catch(err){
+    //console.log('updated', JSON.stringify(myEvents));
+    // console.log('updated222', JSON.stringify(myEvents?.items));
+    return res.status(200).send({ message: "success", data: myEvents });
+
+  } catch (err) {
     return res.status(422).send(err)
   }
-    
-    
+
+
 })
 
 
-router.get('/user/calendar/day/events',async (req,res)=>{
-   
+router.get('/user/calendar/day/events', async (req, res) => {
+
   console.log('req.body', req.query)
   const date = req?.query?.date;
   const userId = req?.query?.user_id;
-  console.log('userId', userId)
+  // console.log('userId', userId)
 
-  try{
-     var query = { date: date, user_id:userId };
-   // var query = { user_id:userId };
+  try {
+    var query = { date: date, user_id: userId };
+    // var query = { user_id:userId };
     console.log(' query', query)
 
 
-    
+
     //  const item = await CalendarEvent.find(query);
     //  console.log('found item', item);
     //  return false;
-  //   return res.status(200).send({message:'success',data:item})
+    //   return res.status(200).send({message:'success',data:item})
 
-  //const tt = CalendarEvent.aggregate([
-  //  { $match: { is_processed: false,} },
+    //const tt = CalendarEvent.aggregate([
+    //  { $match: { is_processed: false,} },
     // { $lookup: {
     //     from: 'items',
     //     let: { 'itemId': '$_id', 'date': '$date' },
@@ -443,7 +498,7 @@ router.get('/user/calendar/day/events',async (req,res)=>{
     // } }
 
 
-   // { "$match": { "is_processed": false,} },
+    // { "$match": { "is_processed": false,} },
     // { "$lookup": {
     //   "from": "items",
     //   "let": { "itemId": "$_id", "date": "$date"},
@@ -460,7 +515,7 @@ router.get('/user/calendar/day/events',async (req,res)=>{
     // }}
 
 
-   // { $match: { date: '2022-09-02T00:00:00.000+00:00',} },
+    // { $match: { date: '2022-09-02T00:00:00.000+00:00',} },
     // { $lookup: {
     //     from: 'items',
     //     let: { 'itemId': '$_id' },
@@ -468,267 +523,267 @@ router.get('/user/calendar/day/events',async (req,res)=>{
     //     as: 'items'
     // } },
     // {"$unwind":"$items"},
-// ]);
+    // ]);
 
-// console.log('updated', tt);
+    // console.log('updated', tt);
 
-// return false;
-
-
-  let params  = {date: '2022-09-02T00:00:00.000+00:00'}
-  let targetDate =  date+'T00:00:00.000Z';
-  const myEvents = await CalendarEvent.aggregate([
-
-    // {
-    //   $lookup: {
-    //     from: "items",
-    //     let: { item_id: "$_id" },
-    //     pipeline: [
-    //       {
-    //         $match: {
-    //           $expr: { $eq: ["$$item_id", "$item_id"] },
-    //           user_id: objectId(userId)
-    //         }
-    //       }
-    //     ],
-    //     as: "items"
-    //   }
-    // }
-
-    // { $match: {
-    //   date: '2022-09-02T00:00:00.000Z'
-    // } },
-
-   // {$match: {_id: ObjectId("6313d0e43890ae5f923e70c6")}},
-    //{"$match":{"calendarevents._id":ObjectId("6313d0e43890ae5f923e70c6")}},
-    // {$match: {_id: ObjectId("6313d1353890ae5f923e70ca")}},
-
-   
-    // {$match:params},
+    // return false;
 
 
+    let params = { date: '2022-09-02T00:00:00.000+00:00' }
+    let targetDate = date + 'T00:00:00.000Z';
+    const myEvents = await CalendarEvent.aggregate([
 
-  // {
-  //     $match:{
-  //       date: "2022-09-02T00:00:00.000+00:00"
-       
-  //     }
-  // },
+      // {
+      //   $lookup: {
+      //     from: "items",
+      //     let: { item_id: "$_id" },
+      //     pipeline: [
+      //       {
+      //         $match: {
+      //           $expr: { $eq: ["$$item_id", "$item_id"] },
+      //           user_id: objectId(userId)
+      //         }
+      //       }
+      //     ],
+      //     as: "items"
+      //   }
+      // }
+
+      // { $match: {
+      //   date: '2022-09-02T00:00:00.000Z'
+      // } },
+
+      // {$match: {_id: ObjectId("6313d0e43890ae5f923e70c6")}},
+      //{"$match":{"calendarevents._id":ObjectId("6313d0e43890ae5f923e70c6")}},
+      // {$match: {_id: ObjectId("6313d1353890ae5f923e70ca")}},
 
 
-    { $match: { $expr : { $eq: [ '$user_id' , { $toObjectId: userId } ] } } },
-    { $match: { $expr : { $eq: [ '$date' , { $toDate : targetDate} ] } } },
+      // {$match:params},
 
-  //  { $match: { $expr : { $eq: [ '$date' ,{ 'date': '2022-09-02T00:00:00.000Z'}] }}},
-  // { $match: { "date": "2022-09-02T00:00:00.000Z" } },
-  // { "$match": { "date": { "date": "2022-09-02T00:00:00.000Z" }}},
-  // {$match : {date : "2022-09-02T00:00:00.000Z"}},
-    {
-      $lookup: {
-        from: 'items',
-        localField: 'item_id',
-        foreignField: '_id',
-        as: 'items',
+
+
+      // {
+      //     $match:{
+      //       date: "2022-09-02T00:00:00.000+00:00"
+
+      //     }
+      // },
+
+
+      { $match: { $expr: { $eq: ['$user_id', { $toObjectId: userId }] } } },
+      { $match: { $expr: { $eq: ['$date', { $toDate: targetDate }] } } },
+
+      //  { $match: { $expr : { $eq: [ '$date' ,{ 'date': '2022-09-02T00:00:00.000Z'}] }}},
+      // { $match: { "date": "2022-09-02T00:00:00.000Z" } },
+      // { "$match": { "date": { "date": "2022-09-02T00:00:00.000Z" }}},
+      // {$match : {date : "2022-09-02T00:00:00.000Z"}},
+      {
+        $lookup: {
+          from: 'items',
+          localField: 'item_id',
+          foreignField: '_id',
+          as: 'items',
+        },
       },
-    },
 
-    {"$unwind":"$items"},
-
-
-
-// {
-//   $lookup: {
-//     from: 'items',
-//     localField: 'item_id',
-//     foreignField: '_id',
-//     as: 'items',
-//     pipeline: [{
-//         $match: {
-//             $expr: {
-//                 $and: [
-//                     //{ $eq: ['$status', 'filled'] },
-//                     { $eq: ['$date', "2022-09-02T00:00:00.000Z"] },
-//                 ]
-//             }
-//         }
-//     }]
-// }
-// },
-//  {"$unwind":"$items"},
-
-  
-
-  //   { 
-  //     $match: {
-  //     "items._id": "6300898521654f833acb359e"
-  //   } 
-  // },
-
-
-//   {
-//     $match:{
-//        item_id:{
-//           $eq: "6300898521654f833acb359e",
-//        }
-//     }
-//  },
-
-    
-
-  //   { 
-  //     $project: { 
-  //       items: 1
-  //    } 
-  //  }
-
-  //   {
-  //     $replaceRoot: { newRoot: { $mergeObjects: [ { $arrayElemAt: [ "$items", 0 ] }, "$$ROOT" ] } }
-  //  },
-  //  { $project: { items: 0 } }
+      { "$unwind": "$items" },
 
 
 
-  // {
-  //   $lookup:
-  //      {
-  //        from: "items",
-  //        let: { o_item: "$item_id" },
-  //        pipeline: [
-  //           { $match:
-  //              { $expr:
-  //                 { $and:
-  //                    [
-  //                      { $eq: [ "$_id",  "$$o_item" ] },
-  //                    ]
-  //                 }
-  //              }
-  //           },
-  //           { $project: { 'date': "2022-09-02T00:00:00.000+00:00" } }
-  //        ],
-  //        as: "items"
-  //      }
-  // },
-  // {"$unwind":"$items"},
+      // {
+      //   $lookup: {
+      //     from: 'items',
+      //     localField: 'item_id',
+      //     foreignField: '_id',
+      //     as: 'items',
+      //     pipeline: [{
+      //         $match: {
+      //             $expr: {
+      //                 $and: [
+      //                     //{ $eq: ['$status', 'filled'] },
+      //                     { $eq: ['$date', "2022-09-02T00:00:00.000Z"] },
+      //                 ]
+      //             }
+      //         }
+      //     }]
+      // }
+      // },
+      //  {"$unwind":"$items"},
 
 
 
-    // {
-    //   $project: {
-
-    //     'user_id': "62cc8b0bd69a251b882dcd95"
-    // },
-    // }
-    // {"$unwind":"$calendarevents"},
-    // {"$match":{"calendarevents.user_id":objectId(userId)}}
-    // {"$unwind":"$items"},
-   //  {"$match":{"items._id":"63013ff2772aad9af8807f96"}}
-
-  ],
-  function (err, response) {
-    console.log(err, response)
- });
+      //   { 
+      //     $match: {
+      //     "items._id": "6300898521654f833acb359e"
+      //   } 
+      // },
 
 
-// const myEvents = User.aggregate([{
-//     $lookup: {
-//         from: 'referrallinks',
-//         localField: '_id',
-//         foreignField: 'companyId',
-//         as: 'referrals'
-//     }
-// }])
-  
+      //   {
+      //     $match:{
+      //        item_id:{
+      //           $eq: "6300898521654f833acb359e",
+      //        }
+      //     }
+      //  },
 
-  // console.log('updated', myEvents);
-  // console.log('updated222', JSON.stringify(myEvents?.items));
-   return res.status(200).send({message:"success", data: myEvents});
 
-  }catch(err){
+
+      //   { 
+      //     $project: { 
+      //       items: 1
+      //    } 
+      //  }
+
+      //   {
+      //     $replaceRoot: { newRoot: { $mergeObjects: [ { $arrayElemAt: [ "$items", 0 ] }, "$$ROOT" ] } }
+      //  },
+      //  { $project: { items: 0 } }
+
+
+
+      // {
+      //   $lookup:
+      //      {
+      //        from: "items",
+      //        let: { o_item: "$item_id" },
+      //        pipeline: [
+      //           { $match:
+      //              { $expr:
+      //                 { $and:
+      //                    [
+      //                      { $eq: [ "$_id",  "$$o_item" ] },
+      //                    ]
+      //                 }
+      //              }
+      //           },
+      //           { $project: { 'date': "2022-09-02T00:00:00.000+00:00" } }
+      //        ],
+      //        as: "items"
+      //      }
+      // },
+      // {"$unwind":"$items"},
+
+
+
+      // {
+      //   $project: {
+
+      //     'user_id': "62cc8b0bd69a251b882dcd95"
+      // },
+      // }
+      // {"$unwind":"$calendarevents"},
+      // {"$match":{"calendarevents.user_id":objectId(userId)}}
+      // {"$unwind":"$items"},
+      //  {"$match":{"items._id":"63013ff2772aad9af8807f96"}}
+
+    ],
+      function (err, response) {
+        console.log(err, response)
+      });
+
+
+    // const myEvents = User.aggregate([{
+    //     $lookup: {
+    //         from: 'referrallinks',
+    //         localField: '_id',
+    //         foreignField: 'companyId',
+    //         as: 'referrals'
+    //     }
+    // }])
+
+
+    // console.log('updated', myEvents);
+    // console.log('updated222', JSON.stringify(myEvents?.items));
+    return res.status(200).send({ message: "success", data: myEvents });
+
+  } catch (err) {
     return res.status(422).send(err)
   }
-    
-    
+
+
 })
 
 
-router.get('/user/calendar-day/event-delete', async(req,res)=>{
+router.get('/user/calendar-day/event-delete', async (req, res) => {
 
   const eventID = req?.query?.event_id;
 
   console.log('delted')
 
-  try{
+  try {
     var query = { _id: eventID };
     const item = await CalendarEvent.findOneAndRemove(query);
     console.log('items', item)
-    return res.status(200).send({message:'success',data:'Event deleted successfully'})
+    return res.status(200).send({ message: 'success', data: 'Event deleted successfully' })
 
-  }catch(err){
+  } catch (err) {
     return res.status(422).send(err)
   }
- 
+
 })
 
 
 
 
 // --------- packing route ---------
-router.post('/user/packing-store',async (req,res)=>{
-   
-  console.log('req.body', req.body)
-    const {name, user_id,item_ids} = req.body;
-    try{
-      
-      const item_ids = JSON.parse(item_ids)
-      const userPacking = new Packing({name, user_id,item_ids});
-      const storeUserPacking =  await  userPacking.save();
-      return res.status(200).send({message:'success',data:storeUserPacking})
+router.post('/user/packing-store', async (req, res) => {
 
-    }catch(err){
-      return res.status(422).send(err)
-    }
-    
-    
+  console.log('req.body', req.body)
+  const { name, user_id, item_ids } = req.body;
+  try {
+
+    const item_ids = JSON.parse(item_ids)
+    const userPacking = new Packing({ name, user_id, item_ids });
+    const storeUserPacking = await userPacking.save();
+    return res.status(200).send({ message: 'success', data: storeUserPacking })
+
+  } catch (err) {
+    return res.status(422).send(err)
+  }
+
+
 })
 
-router.get('/user/packing', async(req,res)=>{
+router.get('/user/packing', async (req, res) => {
 
   const userID = req?.query?.user_id;
 
   //console.log('param user id', userID)
-  try{
+  try {
     var query = { user_id: userID };
     const packings = await Packing.find(query);
     console.log('packings', packings)
-    return res.status(200).send({message:'success',data: packings})
+    return res.status(200).send({ message: 'success', data: packings })
 
-  }catch(err){
+  } catch (err) {
     return res.status(422).send(err)
   }
- 
+
 })
 
 
-router.get('/user/packing/delete', async(req,res)=>{
+router.get('/user/packing/delete', async (req, res) => {
 
   const packingID = req?.query?.packing_id;
 
-  try{
+  try {
     var query = { _id: packingID };
     const packing = await Packing.findOneAndRemove(query);
     console.log('packing', packing)
-    return res.status(200).send({message:'success',data:'Packing deleted successfully'})
+    return res.status(200).send({ message: 'success', data: 'Packing deleted successfully' })
 
-  }catch(err){
+  } catch (err) {
     return res.status(422).send(err)
   }
- 
+
 })
 
 
 
 // --------- color route ---------
-router.get('/colors', async(req,res)=>{
+router.get('/colors', async (req, res) => {
 
   const colors = await Color.aggregate([
 
@@ -745,7 +800,7 @@ router.get('/colors', async(req,res)=>{
 
   console.log('colorss', colors)
 
-  return res.status(200).send({message:'success',data:colors})
+  return res.status(200).send({ message: 'success', data: colors })
 
   // try{
   //   var query = {};
@@ -756,24 +811,24 @@ router.get('/colors', async(req,res)=>{
   // }catch(err){
   //   return res.status(422).send(err)
   // }
- 
+
 })
 
 
 
 // --------- item type  ---------
-router.get('/item-types', async(req,res)=>{
+router.get('/item-types', async (req, res) => {
 
 
-  try{
-        const itemTypes = await ItemType.find({});
-        console.log('itemTypes', itemTypes)
-        return res.status(200).send({message:'success',data:itemTypes})
+  try {
+    const itemTypes = await ItemType.find({});
+    console.log('itemTypes', itemTypes)
+    return res.status(200).send({ message: 'success', data: itemTypes })
 
-  }catch(err){
+  } catch (err) {
     return res.status(422).send(err)
   }
- 
+
 })
 
 
