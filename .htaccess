@@ -1,0 +1,14 @@
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/codegmbw/frydo.codetones.com"
+PassengerBaseURI "/"
+PassengerNodejs "/home/codegmbw/nodevenv/frydo.codetones.com/14/bin/node"
+PassengerAppType node
+PassengerStartupFile index.js
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+# DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION BEGIN
+<IfModule Litespeed>
+SetEnv JWT_KEY anyrandomkeypro
+SetEnv MOGOOSEURL mongodb+srv://frido-user:fridopass@cluster0.3cuh4.mongodb.net/frydoDB?retryWrites=true&w=majority
+SetEnv PORT 3000
+</IfModule>
+# DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION END
