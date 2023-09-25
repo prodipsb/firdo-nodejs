@@ -1,4 +1,3 @@
-node_modules/
 .env
 assets/
 .well-known/
@@ -6,3 +5,4 @@ stderr.log
 tmp/
 vercel.json
 package-lock.json
+node_modules/
