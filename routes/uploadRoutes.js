@@ -228,6 +228,43 @@ router.post('/packing/store', uploadPacking.single('fileData'), async (req, res,
 
 
 
+
+// ===== mylook images upload ===== //
+
+var storageMyLookImages = multer.diskStorage({
+  destination: function (req, file, cb) {
+
+    const authId = req.body.auth_id;
+
+    const folder = `./assets/uploads/mylook/${authId}`;
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder)
+    }
+    cb(null, folder);
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file?.originalname);
+    // const filename = `${file?.originalname}-${Date.now()}.${ext}`;
+    // console.log('made file name', filename)
+    const filename = `${Date.now()}-${file.originalname}`;
+    cb(null, filename)
+  }
+});
+
+var uploadItem = multer({ storage: storageMyLookImages });
+
+router.post('/mylook/store', uploadItem.single('images'), async (req, res, next) => {
+
+  const storeFile = req?.file?.path;
+
+  res.status(200).send({ 'message': 'success', 'data': storeFile })
+
+});
+
+// ===== my look images upload ===== //
+
+
+
 // ===== chat file upload ===== //
 
 var storageChatFile = multer.diskStorage({
