@@ -82,70 +82,130 @@ mongoose.connection.on('error',(err)=>{
 
 // ...
 
-const server = http.createServer(app);
-const io = new Server(server);
+// const server = http.createServer(app);
+// const io = new Server(server);
 
-io.on('connection', (socket) => {
-    console.log('A user connected');
+// io.on('connection', (socket) => {
+//     console.log('A user connected');
+
+    // socket.on("call", (data) => {
+    //   console.log('call data', data)
+    //   let calleeId = data.calleeId;
+    //   console.log('callee ID', calleeId)
+    //   let rtcMessage = data.rtcMessage;
+
+    //   console.log('callee message', rtcMessage)
+
+    //   socket.to(calleeId).emit("newCall", {
+    //     callerId: socket.user,
+    //     rtcMessage: rtcMessage,
+    //   });
+    // });
   
-    socket.on('joinroom', (room) => {
-      socket.join(room);
-      console.log(`User joined room: ${room}`);
-    });
+    // socket.on('joinroom', (room) => {
+    //   socket.join(room);
+    //   console.log(`User joined room: ${room}`);
+    // });
+
+
+    
   
-    socket.on('disconnect', () => {
-      console.log('User disconnected');
-    });
+   
 
-    socket.on('sendMessage', (newMessage) => {
+    // socket.on('sendMessage', (newMessage) => {
 
-      delete newMessage._id;
+    //   delete newMessage._id;
 
-      console.log('before store model', newMessage)
-      const storeMessage = new Chat(newMessage);
+    //   console.log('before store model', newMessage)
+    //   const storeMessage = new Chat(newMessage);
 
-      storeMessage.save((err) => {
-        if (err) {
-          console.error('Error saving message:', err);
-        } else {
+    //   storeMessage.save((err) => {
+    //     if (err) {
+    //       console.error('Error saving message:', err);
+    //     } else {
 
-          console.log('storeMessage', storeMessage)
+    //       console.log('storeMessage', storeMessage)
 
-           // Broadcast the new message to all connected clients
-            io.to(newMessage?.chat_room_id).emit('newMessage', storeMessage);
-        }
-      });
+    //        // Broadcast the new message to all connected clients
+    //         io.to(newMessage?.chat_room_id).emit('newMessage', storeMessage);
+    //     }
+    //   });
 
       
-      });
+    //   });
   
-    socket.on('chat message', (data) => {
+    // socket.on('chat message', (data) => {
 
-        console.log('my message', data)
+    //     console.log('my message', data)
 
-        delete data._id;
+    //     delete data._id;
 
-        console.log('my messag delet ide', data)
+    //     console.log('my messag delet ide', data)
       
-      // Save the message to MongoDB or any other storage
-      const newMessage = new Chat(data);
+    //   // Save the message to MongoDB or any other storage
+    //   const newMessage = new Chat(data);
   
-      newMessage.save((err) => {
-        if (err) {
-          console.error('Error saving message:', err);
-        } else {
+    //   newMessage.save((err) => {
+    //     if (err) {
+    //       console.error('Error saving message:', err);
+    //     } else {
 
-            console.log('store message', newMessage)
-          // Broadcast the message to all users in the room
-          io.to(data?.chat_room_id).emit('chat message', newMessage);
-        }
-      });
+    //         console.log('store message', newMessage)
+    //       // Broadcast the message to all users in the room
+    //       io.to(data?.chat_room_id).emit('chat message', newMessage);
+    //     }
+    //   });
 
       
-    });
-  });
+    // });
+
+    // socket.join(socket.user);
+
+    // socket.on("call", (data) => {
+    //   let calleeId = data.calleeId;
+    //   console.log('callee ID', calleeId)
+    //   let rtcMessage = data.rtcMessage;
+
+    //   console.log('callee message', rtcMessage)
+
+    //   socket.to(calleeId).emit("newCall", {
+    //     callerId: socket.user,
+    //     rtcMessage: rtcMessage,
+    //   });
+    // });
+    
+    // socket.on("answerCall", (data) => {
+    //   console.log('click answer', data)
+    //   let callerId = data.callerId;
+    //   rtcMessage = data.rtcMessage;
+
+    //   socket.to(callerId).emit("callAnswered", {
+    //     callee: socket.user,
+    //     rtcMessage: rtcMessage,
+    //   });
+    // });
+    
+    // socket.on("ICEcandidate", (data) => {
+    //   console.log("ICEcandidate data.calleeId", data.calleeId);
+    //   let calleeId = data.calleeId;
+    //   let rtcMessage = data.rtcMessage;
+
+    //   socket.to(calleeId).emit("ICEcandidate", {
+    //     sender: socket.user,
+    //     rtcMessage: rtcMessage,
+    //   });
+    // });
+
+
+
+  //   socket.on('disconnect', () => {
+  //     console.log('User disconnected');
+  //   });
+
+  // });
   
-  // ...
+  
+
   
 
 
@@ -153,5 +213,15 @@ app.listen(PORT,()=>{
     console.log("server running "+PORT)
 })
 
-server.listen(9000, () => {console.log('socket server running at 9000') })
+// server.listen(9000, () => {console.log('socket server running at 9000') })
+
+
+const { getIO, initIO } = require('./utils/socket');
+
+// const httpServer = http.createServer(app);
+
+// initIO(server);
+initIO(app);
+
+getIO();
 
