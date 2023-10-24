@@ -11,7 +11,8 @@ const CalendarEvent = mongoose.model('CalendarEvent')
 const ItemType = mongoose.model('ItemType')
 const Packing = mongoose.model('Packing')
 const Color = mongoose.model('Color')
-const {mogoUrl} = require('../keys')
+const {mogoUrl} = require('../keys');
+const MyLook = require('../models/MyLook');
 
 
 router.get('/itemapi',(req,res)=>{
@@ -668,6 +669,22 @@ router.get('/item-types', async(req,res)=>{
         const itemTypes = await ItemType.find({});
         console.log('itemTypes', itemTypes)
         return res.status(200).send({message:'success',data:itemTypes})
+
+  }catch(err){
+    return res.status(422).send(err)
+  }
+ 
+})
+
+
+// --------- my look  ---------
+router.get('/mylooks', async(req,res)=>{
+
+
+  try{
+        const mylooks = await MyLook.find({user_id: req.query.user_id});
+        console.log('mylooks', mylooks)
+        return res.status(200).send({message:'success',data:mylooks})
 
   }catch(err){
     return res.status(422).send(err)
