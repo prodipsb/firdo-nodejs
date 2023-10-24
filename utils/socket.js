@@ -9,7 +9,6 @@ module.exports.initIO = (app) => {
 
   httpServer.listen(9000, () => { console.log('socket server running at 9000') })
 
-  // console.log('aaaa', httpServer)
   IO = new Server(httpServer);
 
   IO.use((socket, next) => {
@@ -17,21 +16,38 @@ module.exports.initIO = (app) => {
       let callerId = socket.handshake.query.callerId;
       socket.roomID = socket.handshake.query.room;
       socket.userProfile = socket.handshake.query.user;
+      socket.callerName = socket.handshake.query.name;
       socket.user = callerId;
       next();
     }
   });
 
+
+  const onlineUsers = new Map();
+
   IO.on("connection", (socket) => {
     // console.log(socket.roomID, 'socket.roomID');
-    // console.log(socket.userProfile, 'socket.user');
     console.log("User Connected", socket.user);
-    
+
+
+    if(socket.user){
+    onlineUsers.set(socket.user, socket.user);
+    }
+
+    // console.log('line', onlineUsers)
+
+    // if(socket.user && !onlineUsers.includes(socket.user)){
+    //   onlineUsers.push(socket.user)
+    // }
+
     socket.join(socket.user);
 
     // socket.emit('local:user:joined', {user:socket.user})
 
     socket.on('user:join', ({callerId}) => {
+
+       
+
         console.log('node joined', callerId)
         let user = socket.user;
         IO.to(callerId).emit('user:joined', {user})
@@ -43,6 +59,16 @@ module.exports.initIO = (app) => {
     });
 
 
+    // var online = Object.keys(IO.engine.clients)
+    // console.log('eee', online)
+
+    socket.once('get-socket-users', () => {
+      // Broadcast the updated list of online users to all clients
+      IO.emit('onlineUsers', Array.from(onlineUsers.values()));
+
+      
+    })
+
 
 
 
@@ -51,7 +77,7 @@ module.exports.initIO = (app) => {
 
       delete newMessage._id;
 
-      console.log('before store model', newMessage)
+      // console.log('before store model', newMessage)
       const storeMessage = new Chat(newMessage);
 
       storeMessage.save((err) => {
@@ -59,10 +85,11 @@ module.exports.initIO = (app) => {
           console.error('Error saving message:', err);
         } else {
 
-          console.log('storeMessage', storeMessage)
+          // console.log('storeMessage', storeMessage)
 
           // Broadcast the new message to all connected clients
-          IO.to(newMessage?.chat_room_id).emit('newMessage', storeMessage);
+          // IO.to(newMessage?.chat_room_id).emit('newMessage', storeMessage);
+          IO.emit('newMessage', storeMessage);
         }
       });
 
@@ -75,7 +102,7 @@ module.exports.initIO = (app) => {
 
       delete data._id;
 
-      console.log('my messag delet ide', data)
+      // console.log('my messag delet ide', data)
 
       // Save the message to MongoDB or any other storage
       const newMessage = new Chat(data);
@@ -85,9 +112,10 @@ module.exports.initIO = (app) => {
           console.error('Error saving message:', err);
         } else {
 
-          console.log('store message', newMessage)
+          // console.log('store message', newMessage)
           // Broadcast the message to all users in the room
-          IO.to(data?.chat_room_id).emit('chat message', newMessage);
+          // IO.to(data?.chat_room_id).emit('chat message', newMessage);
+          IO.emit('chat message', newMessage);
         }
       });
 
@@ -102,6 +130,7 @@ module.exports.initIO = (app) => {
       let rtcMessage = payload.rtcMessage;
       let caller = payload.caller;
       let roomID = payload.roomID;
+      let mediaType = payload.mediaType;
 
       console.log('node call return', calleeId)
 
@@ -110,6 +139,7 @@ module.exports.initIO = (app) => {
         callerId: socket.user,
         caller: caller,
         roomID:roomID,
+        mediaType:mediaType,
         rtcMessage: rtcMessage,
       });
     });
@@ -149,6 +179,20 @@ module.exports.initIO = (app) => {
       console.log('peer:nego:done', ans)
         IO.to(to).emit("peer:nego:final", {from: socket.user, ans})
     })
+
+
+
+    socket.on("call:end", (payload) => {
+
+      console.log('node call end', payload)
+      let calleeId = payload.calleeId;
+
+
+      socket.to(calleeId).emit("call:ended", {
+        callerId: socket.user
+      });
+
+    });
 
     // socket.on("peer:close", ({to}) => {
     //     IO.to(to).emit("peer:closed", {from: socket.id})
@@ -213,6 +257,8 @@ module.exports.initIO = (app) => {
   
     socket.on('disconnect', () => {
       console.log('disconnect');
+
+      
   
       if (socket.room) {
         let room = socket.room;
@@ -221,6 +267,12 @@ module.exports.initIO = (app) => {
   
         console.log('leave');
       }
+
+      onlineUsers.delete(socket.user);
+
+      // Broadcast the updated list of online users to all clients
+      IO.emit('onlineUsers', Array.from(onlineUsers.values()));
+
     });
 
 

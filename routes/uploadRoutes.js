@@ -14,6 +14,7 @@ const fsExtra = require('fs-extra');
 const fs = require("fs");
 var path = require("path");
 var multer = require('multer');
+const MyLook = require('../models/MyLook');
 
 var uploadFolder = path.join(__dirname, '../assets/uploads');
 
@@ -232,9 +233,12 @@ router.post('/packing/store', uploadPacking.single('fileData'), async (req, res,
 // ===== mylook images upload ===== //
 
 var storageMyLookImages = multer.diskStorage({
+
   destination: function (req, file, cb) {
 
-    const authId = req.body.auth_id;
+    const authId = req.body.user_id;
+
+    console.log('bbbbb', authId)
 
     const folder = `./assets/uploads/mylook/${authId}`;
     if (!fs.existsSync(folder)) {
@@ -242,6 +246,7 @@ var storageMyLookImages = multer.diskStorage({
     }
     cb(null, folder);
   },
+
   filename: function (req, file, cb) {
     const ext = path.extname(file?.originalname);
     // const filename = `${file?.originalname}-${Date.now()}.${ext}`;
@@ -249,15 +254,45 @@ var storageMyLookImages = multer.diskStorage({
     const filename = `${Date.now()}-${file.originalname}`;
     cb(null, filename)
   }
+
 });
 
-var uploadItem = multer({ storage: storageMyLookImages });
 
-router.post('/mylook/store', uploadItem.single('images'), async (req, res, next) => {
+var uploadMyLook = multer({ storage: storageMyLookImages });
+
+router.post('/mylook/store', uploadMyLook.array('photos[]'), async (req, res, next) => {
+
+  // console.log('req.body', req.body)
+  // console.log('single file',req.file);
+  // console.log('multiple files',req.files);
 
   const storeFile = req?.file?.path;
 
-  res.status(200).send({ 'message': 'success', 'data': storeFile })
+  let Arrphotos = [];
+  
+  req.files.forEach((image) => { 
+    Arrphotos.push(image.path);
+  });
+
+  data = 
+    {
+      title: req?.body?.title,
+      user_id: req?.body?.user_id,
+      details: req?.body?.details,
+      photos: Arrphotos
+    }
+
+    console.log('my look store', data)
+    // return
+
+    const { title, user_id, details, photos } = data;
+
+    const mylook = new MyLook({ title, user_id, details, photos});
+    storeMyLook = await mylook.save();
+
+  
+
+  res.status(200).send({ 'message': 'success', 'data': storeMyLook })
 
 });
 
