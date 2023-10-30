@@ -23,6 +23,63 @@ router.get('/mylooks', async(req,res)=>{
 })
 
 
+router.post('/add/mylook', async (req,res)=>{
+
+   console.log('req.body', req.body)
+   
+  const {user_id,items} = req.body;
+  console.log('my look user', user_id)
+  console.log('my look items ids', items)
+
+  try{
+    
+    const mylook = new MyLook({user_id,items});
+    const addedMylooks =  await  mylook.save();
+    return res.status(200).send({message:'success',data:addedMylooks})
+
+  }catch(err){
+    return res.status(422).send(err)
+  }
+  
+  
+})
+
+
+router.post('/mylook/update', async (req,res)=>{
+
+  console.log('req.body', req.body)
+  
+ const {look_id, user_id,title, details} = req.body;
+ console.log('my look user', user_id)
+
+ try{
+
+   // Create a filter for movies with the title "Random Harvest"
+   const filter = { _id: look_id };
+   /* Set the upsert option to insert a document if no documents match
+   the filter */
+   const options = { upsert: true };
+   // Specify the update to set a value for the plot field
+   const updateDoc = {
+     $set: {
+       title: title,
+       details: details
+     },
+   };
+
+   const result = await MyLook.updateOne(filter, updateDoc, options);
+
+  // console.log('update result', result)
+   return res.status(200).send({message:'success',data:result})
+
+ }catch(err){
+   return res.status(422).send(err)
+ }
+ 
+ 
+})
+
+
 
 router.post('/mylook/share', async (req,res)=>{
    
