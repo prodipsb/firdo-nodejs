@@ -20,7 +20,12 @@ const myLookSchema = new mongoose.Schema({
         type:Array,
         required: false,
         default: null
-    }    
+    },
+    items:{
+        type: Array,
+        required:false,
+        default:null,
+    } 
 
 },
 {

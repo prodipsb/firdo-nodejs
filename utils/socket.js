@@ -28,6 +28,7 @@ module.exports.initIO = (app) => {
   IO.on("connection", (socket) => {
     // console.log(socket.roomID, 'socket.roomID');
     console.log("User Connected", socket.user);
+    console.log("Connected Room", socket.roomID);
 
 
     if(socket.user){
@@ -40,7 +41,8 @@ module.exports.initIO = (app) => {
     //   onlineUsers.push(socket.user)
     // }
 
-    socket.join(socket.user);
+     socket.join(socket.user);
+     socket.join(socket.roomID);
 
     // socket.emit('local:user:joined', {user:socket.user})
 
@@ -54,6 +56,7 @@ module.exports.initIO = (app) => {
     })
 
     socket.on('joinroom', (room) => {
+      console.log('user room', room)
       socket.join(room);
       console.log(`User joined room: ${room}`);
     });
@@ -88,8 +91,8 @@ module.exports.initIO = (app) => {
           // console.log('storeMessage', storeMessage)
 
           // Broadcast the new message to all connected clients
-          // IO.to(newMessage?.chat_room_id).emit('newMessage', storeMessage);
-          IO.emit('newMessage', storeMessage);
+           IO.to(newMessage?.chat_room_id).emit('newMessage', storeMessage);
+         // IO.emit('newMessage', storeMessage);
         }
       });
 
@@ -114,8 +117,8 @@ module.exports.initIO = (app) => {
 
           // console.log('store message', newMessage)
           // Broadcast the message to all users in the room
-          // IO.to(data?.chat_room_id).emit('chat message', newMessage);
-          IO.emit('chat message', newMessage);
+           IO.to(data?.chat_room_id).emit('chat message', newMessage);
+          //IO.emit('chat message', newMessage);
         }
       });
 
@@ -188,9 +191,7 @@ module.exports.initIO = (app) => {
       let calleeId = payload.calleeId;
 
 
-      socket.to(calleeId).emit("call:ended", {
-        callerId: socket.user
-      });
+      IO.to(calleeId).emit("call:ended", {callerId: socket.user});
 
     });
 
@@ -260,8 +261,8 @@ module.exports.initIO = (app) => {
 
       
   
-      if (socket.room) {
-        let room = socket.room;
+      if (socket.roomID) {
+        let room = socket.roomID;
         IO.to(room).emit('leave', socket.id);
         socket.leave(room);
   

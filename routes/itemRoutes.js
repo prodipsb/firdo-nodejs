@@ -24,9 +24,18 @@ router.get('/itemapi',(req,res)=>{
 router.get('/items', async(req,res)=>{
 
   try{
+
+
+//     Item.updateMany({}, 
+//       { $set: { user_id: '64ede65264c38f00095bc7b6'  } },
+//       { multi: true })
+// .then(() => console.log('User updated'))
+// .catch((err) => console.log(err));
+// return false
    
-    const type = req?.query?.type;
-    var query = type ? {type:type} : {}
+    const userId = req?.query?.user_id;
+    console.log('auth userId',  userId)
+    var query = userId ? {user_id:userId} : {}
 
     const color = req?.query?.color;
     console.log(color)
@@ -34,7 +43,7 @@ router.get('/items', async(req,res)=>{
      query = color ? Object.assign(query, {color: color}) : query
      console.log('query', query)
    // var query = { type: type };
-    const items = await Item.find({});
+    const items = await Item.find(query).sort([['createdAt', 'descending']]);
    // console.log('items', items)
     return res.status(200).send({message:'success',data:items})
 
@@ -329,7 +338,7 @@ router.get('/user/calendar/events',async (req,res)=>{
 
 router.get('/user/calendar/day/events',async (req,res)=>{
    
-  console.log('req.body', req.query)
+  console.log('req.body calendar', req.query)
   const date = req?.query?.date;
   const userId = req?.query?.user_id;
   // console.log('userId', userId)

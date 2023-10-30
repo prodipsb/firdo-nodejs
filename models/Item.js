@@ -11,6 +11,12 @@ const itemSchema = new mongoose.Schema({
         default:null,
         ref:"colors"
     },
+    user_id:{
+          type: mongoose.Schema.Types.ObjectId,
+          required: false,
+          default: null,
+          ref: 'users'
+      },
     inspiration_id:{
       //  type: mongoose.Schema.Types.ObjectId,
       //  type:String,

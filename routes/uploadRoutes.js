@@ -9,6 +9,7 @@ const Item = mongoose.model('Item');
 const Packing = mongoose.model('Packing');
 
 
+
 // import fsExtra from 'fs-extra'
 const fsExtra = require('fs-extra');
 const fs = require("fs");
@@ -132,6 +133,7 @@ router.post('/item/save', uploadItem.single('fileData'), async (req, res, next) 
     {
       title: req?.body?.title,
       color: req?.body?.color,
+      user_id: req?.body?.user_id,
       inspiration_id: req?.body?.inspiration_id,
       type: req?.body?.type,
       price: req?.body?.price,
@@ -140,6 +142,7 @@ router.post('/item/save', uploadItem.single('fileData'), async (req, res, next) 
     } : {
       title: req?.body?.title,
       color: req?.body?.color,
+      user_id: req?.body?.user_id,
       inspiration_id: req?.body?.inspiration_id,
       type: req?.body?.type,
       price: req?.body?.price,
@@ -147,8 +150,8 @@ router.post('/item/save', uploadItem.single('fileData'), async (req, res, next) 
     };
 
 
-  const { title, color, inspiration_id, type, price, details, photo } = data;
-  const item = new Item({ title, color, inspiration_id, type, price, details, photo });
+  const { title, color, user_id, inspiration_id, type, price, details, photo } = data;
+  const item = new Item({ title, color, user_id, inspiration_id, type, price, details, photo });
   const storeDate = await item.save();
 
   res.status(200).send({ 'message': 'success', 'data': storeDate })
@@ -237,8 +240,6 @@ var storageMyLookImages = multer.diskStorage({
   destination: function (req, file, cb) {
 
     const authId = req.body.user_id;
-
-    console.log('bbbbb', authId)
 
     const folder = `./assets/uploads/mylook/${authId}`;
     if (!fs.existsSync(folder)) {
