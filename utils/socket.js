@@ -13,10 +13,11 @@ module.exports.initIO = (app) => {
 
   IO.use((socket, next) => {
     if (socket.handshake.query) {
-      let callerId = socket.handshake.query.callerId;
-      socket.roomID = socket.handshake.query.room;
-      socket.userProfile = socket.handshake.query.user;
-      socket.callerName = socket.handshake.query.name;
+      const {callerId, room, user, name} = socket.handshake.query;
+      // console.log('socket data', socket.handshake.query)
+      socket.roomID = room;
+      socket.userProfile = user;
+      socket.callerName = name;
       socket.user = callerId;
       next();
     }
@@ -31,9 +32,9 @@ module.exports.initIO = (app) => {
     console.log("Connected Room", socket.roomID);
 
 
-    if(socket.user){
-    onlineUsers.set(socket.user, socket.user);
-    }
+    // if(socket.user){
+    // onlineUsers.set(socket.user, socket.user);
+    // }
 
     // console.log('line', onlineUsers)
 
@@ -65,12 +66,12 @@ module.exports.initIO = (app) => {
     // var online = Object.keys(IO.engine.clients)
     // console.log('eee', online)
 
-    socket.once('get-socket-users', () => {
-      // Broadcast the updated list of online users to all clients
-      IO.emit('onlineUsers', Array.from(onlineUsers.values()));
+    // socket.once('get-socket-users', () => {
+    //   // Broadcast the updated list of online users to all clients
+    //   IO.emit('onlineUsers', Array.from(onlineUsers.values()));
 
       
-    })
+    // })
 
 
 
@@ -128,29 +129,28 @@ module.exports.initIO = (app) => {
 
 
     socket.on("call", (payload) => {
-      // console.log('socker call other', payload)
-      let calleeId = payload.calleeId;
-      let rtcMessage = payload.rtcMessage;
-      let caller = payload.caller;
-      let roomID = payload.roomID;
-      let mediaType = payload.mediaType;
 
-      console.log('node call return', calleeId)
+      console.log('node call return1', payload.calleeId)
+      console.log('node call sent to', socket.user)
 
+      const data={
+        callerId: socket?.user,
+        caller: payload?.caller,
+        room:payload?.room,
+        mediaType:payload?.mediaType,
+        rtcMessage: payload?.rtcMessage,
+      }
 
-      socket.to(calleeId).emit("newCall", {
-        callerId: socket.user,
-        caller: caller,
-        roomID:roomID,
-        mediaType:mediaType,
-        rtcMessage: rtcMessage,
-      });
+      console.log('call return payload', data)
+
+      socket.to(payload?.room).emit("newCall", data);
+
     });
 
     socket.on("answerCall", (data) => {
       let callerId = data.callerId;
       rtcMessage = data.rtcMessage;
-      // console.log('anser caller id', callerId)
+       console.log('anser caller id', callerId)
       // console.log('anser caller rtcMessage', rtcMessage)
 
       socket.to(callerId).emit("callAnswered", {
@@ -187,11 +187,14 @@ module.exports.initIO = (app) => {
 
     socket.on("call:end", (payload) => {
 
-      console.log('node call end', payload)
+      console.log('node call end socket.room', socket.room)
+      
       let calleeId = payload.calleeId;
+      let room = payload.calleeId;
+      console.log('node call end', payload)
 
 
-      IO.to(calleeId).emit("call:ended", {callerId: socket.user});
+      IO.to(payload.room).emit("call:ended", {callerId: socket.user});
 
     });
 
