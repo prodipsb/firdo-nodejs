@@ -125,10 +125,25 @@ router.get('/sharelooks', async(req,res)=>{
                 foreignField: "_id",
                 as: "user"
               }
+          },
+          {
+            $lookup:
+              {
+                from: "looklikes",
+                localField: "look_id",
+                foreignField: "look_id",
+                as: "lookLike"
+              }
+          },
+          {
+            $sort: {
+              createdAt: -1 // Sorting by the 'createdAt' field in descending order
+            }
           }
+         
         ])
 
-        // console.log('get my all looks', shareLooks)
+        //  console.log('get my all looks', shareLooks)
 
 
 

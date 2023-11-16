@@ -16,11 +16,14 @@ const itemSchema = new mongoose.Schema({
           required: false,
           default: null,
           ref: 'users'
-      },
+    },
+      look_user_id:{
+        type: mongoose.Schema.Types.ObjectId,
+        required: false,
+        default: null,
+        ref: 'users'
+    },
     inspiration_id:{
-      //  type: mongoose.Schema.Types.ObjectId,
-      //  type:String,
-        // type: mongoose.Schema.ObjectId,
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Inspiration',
         required: false,

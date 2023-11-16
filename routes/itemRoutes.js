@@ -11,7 +11,8 @@ const CalendarEvent = mongoose.model('CalendarEvent')
 const ItemType = mongoose.model('ItemType')
 const Packing = mongoose.model('Packing')
 const Color = mongoose.model('Color')
-const {mogoUrl} = require('../keys')
+const {mogoUrl} = require('../keys');
+const { find } = require('../models/Inspiration');
 
 
 router.get('/itemapi',(req,res)=>{
@@ -243,6 +244,49 @@ router.get('/inspirations', async(req,res)=>{
   return res.status(200).send({message:"success", data: inspirations});
 
  
+})
+
+
+
+router.post('/sharelooks/save-to-inspiration', async(req,res)=>{
+
+  // console.log('req.body', req.body)
+  const {user_id, look_id, look_user_id, title, slug, image} = req.body;
+
+  try{
+
+    var query = { user_id, look_id, look_user_id};
+    const inspiration = await Inspiration.findOne(query);
+
+  // console.log('req.inspiration', inspiration)
+
+
+    if(inspiration){
+      return res.status(200).send({message:'error',data:"You have already Save this Look"})
+    }
+    
+    const inspirationItem = new Inspiration({user_id, look_id, look_user_id, title, slug, image});
+    const storeInspirationItem =  await  inspirationItem.save();
+
+
+    const inspirationPayload = {
+        user_id: user_id,
+        look_user_id: look_user_id,
+        title: storeInspirationItem?.title,
+        inspiration_id: storeInspirationItem?._id,
+        photo: storeInspirationItem?.image
+    }
+
+    const item = new Item(inspirationPayload);
+    const storeItem =  await  item.save();
+
+    return res.status(200).send({message:'success',data:storeInspirationItem})
+
+  }catch(err){
+    return res.status(422).send(err)
+  }
+
+
 })
 
 
