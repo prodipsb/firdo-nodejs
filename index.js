@@ -40,6 +40,7 @@ require('./models/Color')
 require('./models/Chat')
 require('./models/MyLook')
 require('./models/ShareLook')
+require('./models/Comment')
 // ==== models ====
 
 
@@ -51,6 +52,7 @@ const authRoutes = require('./routes/authRoutes')
 const uploadRoutes = require('./routes/uploadRoutes')
 const itemRoutes = require('./routes/itemRoutes')
 const chatRoutes = require('./routes/chatRoutes');
+const PostRoute = require('./routes/PostRoute');
 const GlobalRoutes = require('./routes/GlobalRoutes');
 const Chat = require('./models/Chat');
 // ==== routes ====
@@ -61,6 +63,7 @@ app.use('/api/v1', uploadRoutes);
 app.use('/api/v1', itemRoutes);
 app.use('/api/v1', chatRoutes);
 app.use('/api/v1', GlobalRoutes);
+app.use('/api/v1', PostRoute);
 
 
 
