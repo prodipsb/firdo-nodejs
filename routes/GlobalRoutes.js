@@ -6,6 +6,9 @@ const router = express.Router();
 const {mogoUrl} = require('../keys');
 const MyLook = require('../models/MyLook');
 const ShareLook = require('../models/ShareLook');
+const Category = require('../models/Category');
+const pluralize = require('pluralize');
+const Type = require('../models/Type');
 
 
 // --------- my look  ---------
@@ -24,12 +27,8 @@ router.get('/mylooks', async(req,res)=>{
 
 
 router.post('/add/mylook', async (req,res)=>{
-
-   console.log('req.body', req.body)
    
   const {user_id,items} = req.body;
-  console.log('my look user', user_id)
-  console.log('my look items ids', items)
 
   try{
     
@@ -69,7 +68,6 @@ router.post('/mylook/update', async (req,res)=>{
 
    const result = await MyLook.updateOne(filter, updateDoc, options);
 
-  // console.log('update result', result)
    return res.status(200).send({message:'success',data:result})
 
  }catch(err){
@@ -136,6 +134,15 @@ router.get('/sharelooks', async(req,res)=>{
               }
           },
           {
+            $lookup:
+              {
+                from: "lookfollows",
+                localField: "user_id",
+                foreignField: "user_id",
+                as: "lookFollow"
+              }
+          },
+          {
             $sort: {
               createdAt: -1 // Sorting by the 'createdAt' field in descending order
             }
@@ -160,6 +167,210 @@ router.get('/sharelooks', async(req,res)=>{
 
 
 
+// --------- Category Route  ---------
+router.get('/categories', async(req,res)=>{
+
+  try{
+
+    const categories = await Category.aggregate([
+      {
+        $lookup:
+          {
+            from: "types",
+            localField: "_id",
+            foreignField: "category_id",
+            as: "types"
+          }
+      },
+      {
+        $sort: {
+          title:1 
+        }
+      }
+     
+    ])
+
+
+   // const categories = await Category.find({}).sort({title:1});
+    return res.status(200).send({message:'success',data:categories})
+
+  }catch(err){
+    return res.status(422).send(err)
+  }
+ 
+})
+
+
+router.post('/category/store', async (req,res)=>{
+
+   
+  const {title} = req.body;
+  const plural = pluralize(title);
+
+  try{
+    
+    const category = new Category({title, plural});
+    const addedCategory =  await  category.save();
+    return res.status(200).send({message:'success',data:addedCategory})
+
+  }catch(err){
+    return res.status(422).send(err)
+  }
+  
+  
+})
+
+
+router.post('/category/update', async (req,res)=>{
+
+  
+ const {_id,title} = req.body;
+//  console.log('my look user', user_id)
+
+ try{
+
+   // Create a filter 
+   const filter = { _id: _id };
+   /* Set the upsert option to insert a document if no documents match
+   the filter */
+   const options = { upsert: true };
+   // Specify the update to set a value for the plot field
+   const updateDoc = {
+     $set: {
+       title: title,
+     },
+   };
+
+   const result = await Category.updateOne(filter, updateDoc, options);
+
+   return res.status(200).send({message:'success',data:result})
+
+ }catch(err){
+   return res.status(422).send(err)
+ }
+ 
+ 
+})
+
+
+router.get('/category/delete', async(req,res)=>{
+
+  const categoryId = req?.query?._id;
+
+  try{
+    var query = { _id: categoryId };
+    const category = await Category.findOneAndRemove(query);
+    return res.status(200).send({message:'success',data:'Category deleted successfully'})
+
+  }catch(err){
+    return res.status(422).send(err)
+  }
+ 
+})
+
+
+// --------- TYpe Route  ---------
+router.get('/types', async(req,res)=>{
+
+  if(req?.query?.category_id){
+    var query = {category_id: req?.query?.category_id}
+  }else{
+    var query ={}
+  }
+
+  try{
+    const types = await Type.find(query).sort({title:1});
+    return res.status(200).send({message:'success',data:types})
+
+  }catch(err){
+    return res.status(422).send(err)
+  }
+ 
+})
+
+router.get('/type', async(req,res)=>{
+
+
+  try{
+    const type = await Type.find({_id: req.query._id});
+    return res.status(200).send({message:'success',data:type})
+
+  }catch(err){
+    return res.status(422).send(err)
+  }
+ 
+})
+
+
+router.post('/type/store', async (req,res)=>{
+
+   console.log('req.body', req.body)
+   
+  const {category_id, title, image} = req.body;
+  const plural = pluralize(title);
+
+  try{
+    
+    const type = new Type({category_id, title, plural, image});
+    const addedType =  await  type.save();
+    return res.status(200).send({message:'success',data:addedType})
+
+  }catch(err){
+    return res.status(422).send(err)
+  }
+  
+  
+})
+
+
+router.post('/type/update', async (req,res)=>{
+
+  
+  const {_id, category_id, title, image} = req.body;
+  const plural = pluralize(title);
+
+ try{
+
+   // Create a filter 
+   const filter = { _id: _id };
+   /* Set the upsert option to insert a document if no documents match
+   the filter */
+   const options = { upsert: true };
+   // Specify the update to set a value for the plot field
+   const updateDoc = {
+     $set: {
+       category_id:category_id,
+       title: title,
+       image:image
+     },
+   };
+
+   const result = await Type.updateOne(filter, updateDoc, options);
+
+   return res.status(200).send({message:'success',data:result})
+
+ }catch(err){
+   return res.status(422).send(err)
+ }
+ 
+ 
+})
+
+
+router.get('/type/delete', async(req,res)=>{
+
+  const typeId = req?.query?._id;
+
+  try{
+    var query = { _id: typeId };
+    const type = await Type.findOneAndRemove(query);
+    return res.status(200).send({message:'success',data:'Type deleted successfully'})
+
+  }catch(err){
+    return res.status(422).send(err)
+  }
+ 
+})
 
 
 

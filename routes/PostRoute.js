@@ -8,6 +8,7 @@ const LookLike = require('../models/LookLike');
 const ShareLook = require('../models/ShareLook');
 const Comment = require('../models/Comment');
 const CommentReply = require('../models/CommentReply');
+const LookFollow = require('../models/LookFollow');
 
 
 //  Update like for a look by its ID
@@ -176,6 +177,33 @@ router.post("/sharelook/:commentId/reply", async (req, res) => {
 
   } catch (error) {
     res.status(400).json({ message: " Error: " + error })
+  }
+});
+
+
+
+//  Update like for a look by its ID
+router.post('/sharelooks/:lookId/follow', async (req, res) => {
+  try {
+
+    const lookId = req.params.lookId;
+    const authId = req.body.authId; 
+
+     // Find and delete the LookFollow entry associated with the user and look
+     const deletedLookFollow = await LookFollow.findOneAndDelete({ look_id:lookId, user_id:authId });
+
+     if (!deletedLookFollow) {
+
+      const newLookFollow = new LookFollow({ look_id:lookId, user_id:authId });
+      await newLookFollow.save();
+
+       res.json(newLookFollow);
+
+     }
+    
+  } catch (error) {
+    // console.log('like update err', error)
+    return res.status(500).json({ error: error.message });
   }
 });
 

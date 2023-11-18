@@ -7,6 +7,7 @@ const User = mongoose.model('User');
 
 const Item = mongoose.model('Item');
 const Packing = mongoose.model('Packing');
+const pluralize = require('pluralize');
 
 
 
@@ -16,6 +17,7 @@ const fs = require("fs");
 var path = require("path");
 var multer = require('multer');
 const MyLook = require('../models/MyLook');
+const Type = require('../models/Type');
 
 var uploadFolder = path.join(__dirname, '../assets/uploads');
 
@@ -125,8 +127,6 @@ var uploadItem = multer({ storage: storageItem });
 
 
 router.post('/item/save', uploadItem.single('fileData'), async (req, res, next) => {
-  console.log('req.body', req.body)
-  console.log(req.file);
 
   let data = '';
   data = req?.file?.path ?
@@ -135,7 +135,8 @@ router.post('/item/save', uploadItem.single('fileData'), async (req, res, next) 
       color: req?.body?.color,
       user_id: req?.body?.user_id,
       inspiration_id: req?.body?.inspiration_id,
-      type: req?.body?.type,
+      category_id: req?.body?.category_id,
+      type_id: req?.body?.type,
       price: req?.body?.price,
       details: req?.body?.details,
       photo: req?.file?.path
@@ -144,14 +145,15 @@ router.post('/item/save', uploadItem.single('fileData'), async (req, res, next) 
       color: req?.body?.color,
       user_id: req?.body?.user_id,
       inspiration_id: req?.body?.inspiration_id,
-      type: req?.body?.type,
+      category_id: req?.body?.category_id,
+      type_id: req?.body?.type,
       price: req?.body?.price,
       details: req?.body?.details,
     };
 
 
-  const { title, color, user_id, inspiration_id, type, price, details, photo } = data;
-  const item = new Item({ title, color, user_id, inspiration_id, type, price, details, photo });
+  const { title, color, user_id, inspiration_id, category_id, type_id, price, details, photo } = data;
+  const item = new Item({ title, color, user_id, inspiration_id, category_id, type_id, price, details, photo });
   const storeDate = await item.save();
 
   res.status(200).send({ 'message': 'success', 'data': storeDate })
@@ -334,6 +336,64 @@ router.post('/chat/file/store', uploadItem.single('chatfile'), async (req, res, 
 });
 
 // ===== chat file upload ===== //
+
+
+
+// ===== type images upload ===== //
+
+var storageTypeImages = multer.diskStorage({
+
+  destination: function (req, file, cb) {
+    const folder = `./assets/uploads/type`;
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder)
+    }
+    cb(null, folder);
+  },
+
+  filename: function (req, file, cb) {
+    const ext = path.extname(file?.originalname);
+    const filename = `${Date.now()}-${file.originalname}`;
+    cb(null, filename)
+  }
+
+});
+
+
+var uploadType = multer({ storage: storageTypeImages });
+
+router.post('/type/store', uploadType.single('image'), async (req, res, next) => {
+ 
+  const {category_id, title } = req.body;
+  const plural = pluralize(title);
+  const image = req?.file?.path;
+
+
+  const type = new Type({ category_id, title, plural, image});
+
+  // Save the user and handle validation errors
+  await type.save()
+  .then((data) => {
+    // This block will not be executed since the data is invalid
+    res.status(200).send({ 'message': 'success', 'data': data })
+  })
+  .catch((error) => {
+    if (error instanceof mongoose.Error.ValidationError) {
+      // Handle validation error
+      console.error('Validation error:', error.message);
+      res.status(412).send({ 'message': 'Validation error', 'data': error.message })
+    } else {
+      // Handle other types of errors
+      console.error('Unexpected error:', error);
+      res.status(412).send({ 'message': 'Unexpected error', 'data': error })
+    }
+  });
+
+  
+
+});
+
+// ===== my look images upload ===== //
 
 
 module.exports = router

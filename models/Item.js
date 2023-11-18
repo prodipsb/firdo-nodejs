@@ -29,6 +29,18 @@ const itemSchema = new mongoose.Schema({
         required: false,
         default: null
     },
+    category_id:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'categories',
+        required: false,
+        default: null
+    },
+    type_id:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'types',
+        required: false,
+        default: null
+    },
     type:{
         type:String,
         required: false,

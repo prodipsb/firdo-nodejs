@@ -41,6 +41,8 @@ require('./models/Chat')
 require('./models/MyLook')
 require('./models/ShareLook')
 require('./models/Comment')
+require('./models/Category')
+
 // ==== models ====
 
 
