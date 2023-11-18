@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const itemTypeSchema = new mongoose.Schema({
     title: {
         type: String,

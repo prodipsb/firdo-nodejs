@@ -26,26 +26,15 @@ router.get('/items', async(req,res)=>{
 
   try{
 
-
-//     Item.updateMany({}, 
-//       { $set: { user_id: '64ede65264c38f00095bc7b6'  } },
-//       { multi: true })
-// .then(() => console.log('User updated'))
-// .catch((err) => console.log(err));
-// return false
    
     const userId = req?.query?.user_id;
-    console.log('auth userId',  userId)
-    var query = userId ? {user_id:userId} : {}
+    const typeId = req?.query?.type_id;
+    var query = {user_id:userId, type_id: typeId}
 
     const color = req?.query?.color;
-    console.log(color)
     
      query = color ? Object.assign(query, {color: color}) : query
-     console.log('query', query)
-   // var query = { type: type };
     const items = await Item.find(query).sort([['createdAt', 'descending']]);
-   // console.log('items', items)
     return res.status(200).send({message:'success',data:items})
 
   }catch(err){
@@ -59,90 +48,6 @@ router.get('/items', async(req,res)=>{
 router.get('/items/by-type', async(req,res)=>{
 
   try{
-  //   const type = req?.query?.type;
-  //   var query = type ? {type:type} : {}
-  //  // var query = { type: type };
-  //   const items = await Item.find(query);
-  //  // console.log('items', items)
-  //   return res.status(200).send({message:'success',data:items})
-
-
-//   Message.aggregate(
-//     [
-//         { "$match": { "to": user } },
-//         { "$sort": { "date": 1 } },
-//         { "$group": { 
-//             "_id": "from",
-//             "to": { "$first": "$to" },
-//             "message": { "$first": "$message" },
-//             "date": { "$first": "$date" },
-//             "origId": { "$first": "$_id" }
-//         }},
-//         { "$lookup": {
-//              "from": "users",
-//              "localField": "from",
-//              "foreignField": "_id",
-//              "as": "from"
-//         }},
-//         { "$lookup": {
-//              "from": "users",
-//              "localField": "to",
-//              "foreignField": "_id",
-//              "as": "to"
-//         }},
-//         { "$unwind": { "path" : "$from" } },
-//         { "$unwind": { "path" : "$to" } }
-//     ],
-//     function(err,results) {
-//         if (err) throw err;
-//         return results;
-//     }
-// )
-
-
-      // const itemTypes = await ItemType.find({});
-      //  console.log('itemTypes', itemTypes)
-      // return res.status(200).send({message:'success',data:itemTypes})
-
-
-
-      // const typeItems = await ItemType.aggregate(
-      //   [
-      //      // { "$match": { "to": user } },
-      //      // { "$sort": { "date": 1 } },
-      //      { "$group": { 
-      //          "type": "$slug",
-      //           // "to": { "$first": "$to" },
-      //           // "message": { "$first": "$message" },
-      //           // "date": { "$first": "$date" },
-      //           // "origId": { "$first": "$_id" }
-      //      }},
-      //       { "$lookup": {
-      //           "from": "items",
-      //           "localField": "slug",
-      //           "foreignField": "type",
-      //           "as": "typeItems"
-      //       }},
-      //       // { "$lookup": {
-      //       //     "from": "users",
-      //       //     "localField": "to",
-      //       //     "foreignField": "_id",
-      //       //     "as": "to"
-      //       // }},
-      //       { "$unwind": { "path" : "$typeItems" } },
-      //     //  { "$unwind": { "path" : "$to" } }
-          
-      //   ],
-      //   function(err,results) {
-      //       if (err) throw err;
-      //       return results;
-      //   }
-      // )
-
-      //  console.log('typeItems', typeItems)
-      //  return res.status(200).send({message:'success',data:typeItems})
-
-
 
       const typeItems = await ItemType.aggregate([
 
@@ -158,8 +63,6 @@ router.get('/items/by-type', async(req,res)=>{
       ]);
     
       
-    
-     //  console.log('typeItems', typeItems);
       return res.status(200).send({message:"success", data: typeItems});
 
       
@@ -178,7 +81,6 @@ router.get('/item', async(req,res)=>{
   try{
     var query = id ? { _id: id } : {};
     const item = await Item.findOne(query);
-   // console.log('items', items)
     return res.status(200).send({message:'success',data:item})
 
   }catch(err){
@@ -206,7 +108,6 @@ router.get('/items/shoe', async(req,res)=>{
 
 router.post('/user/item-store',async (req,res)=>{
    
-  console.log('req.body', req.body)
     const {user_id,item_id,shoe_id,pant_id} = req.body;
     try{
       
@@ -240,7 +141,6 @@ router.get('/inspirations', async(req,res)=>{
 
   
 
-  // console.log('updated', inspirations);
   return res.status(200).send({message:"success", data: inspirations});
 
  
@@ -250,15 +150,12 @@ router.get('/inspirations', async(req,res)=>{
 
 router.post('/sharelooks/save-to-inspiration', async(req,res)=>{
 
-  // console.log('req.body', req.body)
   const {user_id, look_id, look_user_id, title, slug, image} = req.body;
 
   try{
 
     var query = { user_id, look_id, look_user_id};
     const inspiration = await Inspiration.findOne(query);
-
-  // console.log('req.inspiration', inspiration)
 
 
     if(inspiration){
@@ -711,19 +608,80 @@ router.get('/colors', async(req,res)=>{
 
   ]);
 
-  console.log('colorss', colors)
-
   return res.status(200).send({message:'success',data:colors})
+ 
+})
 
-  // try{
-  //   var query = {};
-  //   const colors = await Color.find(query);
-  //   console.log('colors', colors)
-  //   return res.status(200).send({message:'success',data:colors})
 
-  // }catch(err){
-  //   return res.status(422).send(err)
-  // }
+
+router.post('/color/store',async (req,res)=>{
+   
+    const {title, code} = req.body;
+
+    // validator.body('title').custom( (value, {req}) => {
+    //   console.log(value)
+    //   return Color.findOne({ title:value})
+    //     .then( (color) => {
+    //     if (color !== null) {
+    //       return Promise.reject('Color already in use');
+    //     }
+    //   })
+    // })
+
+    try{
+      
+      const color = new Color({title, code});
+      const storeColor =  await  color.save();
+      return res.status(200).send({message:'success',data:storeColor})
+
+    }catch(err){
+      return res.status(422).send(err)
+    }
+    
+    
+})
+
+router.post('/color/update', async (req,res)=>{
+  
+ const {id,title, code} = req.body;
+
+ try{
+
+   const filter = { _id: id };
+   /* Set the upsert option to insert a document if no documents match
+   the filter */
+   const options = { upsert: true };
+   // Specify the update to set a value for the plot field
+   const updateDoc = {
+     $set: {
+       title: title,
+       code: code
+     },
+   };
+
+   const result = await Color.updateOne(filter, updateDoc, options);
+
+   return res.status(200).send({message:'success',data:result})
+
+ }catch(err){
+   return res.status(422).send(err)
+ }
+ 
+ 
+})
+
+router.get('/color/delete', async(req,res)=>{
+
+  const colorId = req?.query?._id;
+
+  try{
+    var query = { _id: colorId };
+    const color = await Color.findOneAndRemove(query);
+    return res.status(200).send({message:'success',data:'Color deleted successfully'})
+
+  }catch(err){
+    return res.status(422).send(err)
+  }
  
 })
 
@@ -735,7 +693,7 @@ router.get('/item-types', async(req,res)=>{
 
   try{
         const itemTypes = await ItemType.find({});
-        console.log('itemTypes', itemTypes)
+        // console.log('itemTypes', itemTypes)
         return res.status(200).send({message:'success',data:itemTypes})
 
   }catch(err){
