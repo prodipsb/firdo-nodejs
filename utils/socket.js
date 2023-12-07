@@ -130,33 +130,45 @@ module.exports.initIO = (app) => {
 
     socket.on("call", (payload) => {
 
-      console.log('node call return1', payload.calleeId)
-      console.log('node call sent to', socket.user)
+     
 
       const data={
-        callerId: socket?.user,
+        // callerId: socket?.user,
         caller: payload?.caller,
+        callerId: payload?.calleeId,
         room:payload?.room,
         mediaType:payload?.mediaType,
         rtcMessage: payload?.rtcMessage,
       }
 
-      console.log('call return payload', data)
+    //  console.log('node call return', data)
 
-      socket.to(payload?.room).emit("newCall", data);
+      // console.log('call return payload', data)
+
+      // socket.emit("newCall", data);
+        // socket.to(payload?.caller?._id).emit("newCall", data);
+        socket.to(payload?.calleeId).emit("newCall", data);
+     // socket.to(payload?.room).emit("newCall", data);
 
     });
 
     socket.on("answerCall", (data) => {
+      let room = data.room;
       let callerId = data.callerId;
-      rtcMessage = data.rtcMessage;
-       console.log('anser caller id', callerId)
+      let rtcMessage = data.rtcMessage;
+      console.log('anser caller socket.user', socket.user)
+       console.log('anser caller', data)
       // console.log('anser caller rtcMessage', rtcMessage)
 
       socket.to(callerId).emit("callAnswered", {
         callee: socket.user,
         rtcMessage: rtcMessage,
       });
+
+      // socket.to(room).emit("callAnswered", {
+      //   callee: socket.user,
+      //   rtcMessage: rtcMessage,
+      // });
     });
 
     socket.on("ICEcandidate", (data) => {
