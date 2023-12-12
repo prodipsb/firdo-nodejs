@@ -1,5 +1,5 @@
-.env
-# assets/
+# .env
+assets/
 .well-known/
 stderr.log
 tmp/
