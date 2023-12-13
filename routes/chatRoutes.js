@@ -132,7 +132,7 @@ router.get("/sentfriend-requests", async (req, res) => {
     // const user = await User.findById(userId).populate("friendRequests", "name email avatar").lean();
     // const friendRequests = user.friendRequests;
 
-    const user = await User.findById(userId).populate("sentFriendRequests", "name email avatar").lean();
+    const user = await User.findById(userId).populate("sentFriendRequests", "name email avatar device_token").lean();
     const sentFriendRequests = user.sentFriendRequests;
 
     // console.log('sentFriendRequests', sentFriendRequests)

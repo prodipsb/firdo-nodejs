@@ -41,6 +41,11 @@ const userSchema = new mongoose.Schema({
         require:false,
         default: null
     },
+    device_token:{
+        type:String,
+        required: false,
+        default: null
+    },
     about:{
         type:String,
         required: false,

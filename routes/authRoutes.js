@@ -114,7 +114,30 @@ router.post('/updateuser', (req, res) => {
               console.log("Something wrong when updating data!");
           }
       
-         console.log('updated user info', doc);
+        //  console.log('updated user info', doc);
+         return res.status(200).send({message:'success',data:doc})
+
+     //  return res.status(200).json({status: 200, message: 'File saved successfully'});
+    });
+
+
+});
+
+
+router.post('/update/user/device-token', (req, res) => {
+
+  let filters = {
+    _id: req?.body?.auth_id,
+   // device_token: req?.body?.device_token, 
+  };
+  // console.log('user token filter', filters)
+
+      User.findOneAndUpdate(filters, {$set:{device_token: req?.body?.device_token}}, {new: true}, (err, doc) => {
+          if (err) {
+              console.log("Something wrong when updating data!");
+          }
+      
+        //  console.log('updated user info', doc);
          return res.status(200).send({message:'success',data:doc})
 
      //  return res.status(200).json({status: 200, message: 'File saved successfully'});
