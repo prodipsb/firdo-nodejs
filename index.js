@@ -49,14 +49,18 @@ require('./models/Category')
 
 
 // ==== routes ====
-const requireToken = require('./middleware/requireToken')
-const authRoutes = require('./routes/authRoutes')
-const uploadRoutes = require('./routes/uploadRoutes')
-const itemRoutes = require('./routes/itemRoutes')
+const requireToken = require('./middleware/requireToken');
+const authRoutes = require('./routes/authRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
+const itemRoutes = require('./routes/itemRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const PostRoute = require('./routes/PostRoute');
 const GlobalRoutes = require('./routes/GlobalRoutes');
 const Chat = require('./models/Chat');
+
+
+
+
 // ==== routes ====
 
 app.use(cors());

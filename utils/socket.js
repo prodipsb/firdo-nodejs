@@ -2,6 +2,12 @@ const { Server } = require("socket.io");
 const http = require('http');
 const Chat = require('../models/Chat');
 let IO;
+const admin = require('firebase-admin');
+// Initialize Firebase Admin SDK with your service account credentials
+const serviceAccount = require('../utils/frydo-firebase-adminsdk.json');
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 module.exports.initIO = (app) => {
 
@@ -130,16 +136,97 @@ module.exports.initIO = (app) => {
 
     socket.on("call", (payload) => {
 
+
+      const registrationTokens = [
+        payload?.deviceToken
+      ];
+      
+      const notificationData = {
+        title: "Incoming Call",
+        body: `Call from ${payload?.caller?.name}`,
+      };
+      
+      const messageData = {
+        notification: notificationData,
+        data: {
+          caller: JSON.stringify(payload?.caller),
+          callerId: payload?.calleeId,
+          room: payload?.room,
+          mediaType: payload?.mediaType,
+        },
+      };
+      
+      admin.messaging().sendToDevice(registrationTokens, messageData)
+        .then((response) => {
+          console.log('Sent successfully.\n', response);
+          // Handle success
+          // res.status(statusCodes.Ok);
+          // res.json(response);
+        })
+        .catch((error) => {
+          console.log('Sent failed.\n', error);
+          // Handle error
+          // res.status(statusCodes.InternalServerError);
+          // res.json(error);
+        });
+      
+   // });
+
+     // console.log('hello call', payload)
+
+    // const  message = {
+    //   token:payload?.deviceToken,
+    //   data:{
+    //     title : "Incoming Call",
+    //     body : `Call from ${payload?.caller?.name}`,
+    //     caller: JSON.stringify(payload?.caller),
+    //     callerId: payload?.calleeId,
+    //     room:payload?.room,
+    //     mediaType:payload?.mediaType,
+    //     action : "A|B|C"
+    //   }
+    // }
+
+    // console.log('message', message)
+
+
+        // Construct the FCM message
+        // const message = {
+        //   data: {
+        //     title: 'Incoming Call',
+        //     body: `Call from ${payload?.caller?.name}`,
+        //     caller: JSON.stringify(payload?.caller),
+        //      callerId: payload?.calleeId,
+        //      room:payload?.room,
+        //      mediaType:payload?.mediaType,
+        //     // rtcMessage: payload?.rtcMessage,
+        //   },
+        //   token: payload?.deviceToken,
+        // };
+
+       // console.log('device token message', message)
+
+        // Send the message to the recipient's device
+        // admin.messaging().send(message)
+        //   .then(() => {
+        //     console.log('Successfully sent message');
+        //    // res.status(200).send('Notification sent successfully');
+        //   })
+        //   .catch((error) => {
+        //     console.error('Error sending message:', error);
+        //     res.status(500).send('Error sending notification');
+        //   });
+
      
 
-      const data={
-        // callerId: socket?.user,
-        caller: payload?.caller,
-        callerId: payload?.calleeId,
-        room:payload?.room,
-        mediaType:payload?.mediaType,
-        rtcMessage: payload?.rtcMessage,
-      }
+      // const data={
+      //   // callerId: socket?.user,
+      //   caller: payload?.caller,
+      //   callerId: payload?.calleeId,
+      //   room:payload?.room,
+      //   mediaType:payload?.mediaType,
+      //   rtcMessage: payload?.rtcMessage,
+      // }
 
     //  console.log('node call return', data)
 
@@ -147,7 +234,7 @@ module.exports.initIO = (app) => {
 
       // socket.emit("newCall", data);
         // socket.to(payload?.caller?._id).emit("newCall", data);
-        socket.to(payload?.calleeId).emit("newCall", data);
+        // socket.to(payload?.calleeId).emit("newCall", data);
      // socket.to(payload?.room).emit("newCall", data);
 
     });
