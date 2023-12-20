@@ -50,6 +50,11 @@ const userSchema = new mongoose.Schema({
         type:String,
         required: false,
         default: null
+    },
+    isActive:{
+        type:Boolean,
+        required: false,
+        default: false
     }
 
 },

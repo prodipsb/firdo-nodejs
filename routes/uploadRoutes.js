@@ -31,6 +31,7 @@ var storage = multer.diskStorage({
   destination: function (req, file, cb) {
 
     const folder = './assets/uploads/avatar/' + req?.body?.id
+    console.log('folder')
     if (!fs.existsSync(folder)) {
       fs.mkdirSync(folder)
     }
@@ -42,7 +43,7 @@ var storage = multer.diskStorage({
     const authName = (req?.body?.name)?.replace(/\s+/g, '-')?.toLowerCase();
     const filename = `${req?.body?.id}-${Date.now()}${ext}`;
     //  const filename = `${authName}-${Date.now()}${ext}`;
-    console.log('eeeeerrrfile', filename);
+    // console.log('eeeeerrrfile', filename);
     cb(null, filename)
   }
 });
@@ -55,11 +56,11 @@ var upload = multer({ storage: storage });
 
 router.post('/upload', upload.single("fileData"), async (req, res, next) => {
 
-  console.log('before req.body', req?.body)
+  // console.log('before req.body', req?.body)
 
   try {
 
-    console.log('before req.file', req?.file)
+    // console.log('before req.file', req?.file)
 
     // if (!req.file) {
     //     return res.send('Please select an image to upload');
@@ -86,7 +87,7 @@ router.post('/upload', upload.single("fileData"), async (req, res, next) => {
         console.log("Something wrong when updating data!");
       }
 
-      console.log('updated user info', doc);
+      // console.log('updated user info', doc);
 
       //  return res.status(200).json({status: 200, message: 'File saved successfully'});
     });
