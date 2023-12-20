@@ -57,12 +57,15 @@ router.post('/api/v1/user/signin',async (req,res)=>{
     }
     const user = await User.findOne({email})
     if(!user){
-        return res.status(422).send({error :"User not found"})
+        return res.status(404).send({error :"User not found"})
     }
     try{
-      await user.comparePassword(password);    
-      const token = jwt.sign({userId:user._id},jwtkey)
-      res.send({token:token, user:user})
+      await user.comparePassword(password);  
+       // Update user's active status to true
+       user.isActive = true;
+       await user.save();  
+      const token = jwt.sign({userId:user._id},jwtkey);
+      res.status(200).send({token:token, user:user});
     }catch(err){
         return res.status(422).send({error :"Email or Password Invalid"})
     }
@@ -114,7 +117,7 @@ router.post('/updateuser', (req, res) => {
               console.log("Something wrong when updating data!");
           }
       
-         console.log('updated user info', doc);
+        //  console.log('updated user info', doc);
          return res.status(200).send({message:'success',data:doc})
 
      //  return res.status(200).json({status: 200, message: 'File saved successfully'});
@@ -124,6 +127,50 @@ router.post('/updateuser', (req, res) => {
 });
 
 
+router.post('/update/user/device-token', (req, res) => {
+
+  let filters = {
+    _id: req?.body?.auth_id,
+   // device_token: req?.body?.device_token, 
+  };
+  // console.log('user token filter', filters)
+
+      User.findOneAndUpdate(filters, {$set:{device_token: req?.body?.device_token}}, {new: true}, (err, doc) => {
+          if (err) {
+              console.log("Something wrong when updating data!");
+          }
+      
+        //  console.log('updated user info', doc);
+         return res.status(200).send({message:'success',data:doc})
+
+     //  return res.status(200).json({status: 200, message: 'File saved successfully'});
+    });
+
+
+});
+
+
+
+router.post('/api/v1/user/logout', async(req,res)=>{
+  // console.log('login user', req.body)
+  const authId = req.body._id;
+
+    const user = await User.findById(authId)
+    // console.log('useruser', user)
+
+    try{
+       // Update user's active status to true
+       user.isActive = false;
+       await user.save();  
+      // const token = jwt.sign({userId:user._id},jwtkey);
+       res.status(200).send({message:'Logout Successfull!'});
+    }catch(err){
+        return res.status(422).send({error :"Logout Invalid"})
+    }
+    
+
+
+})
 
 
 

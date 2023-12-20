@@ -126,13 +126,14 @@ router.get("/sentfriend-requests", async (req, res) => {
   try {
 
     const { userId } = req.query;
-    console.log('userId', req.query)
+    // console.log('userId', req.query)
 
     //fetch the user document based on the user id
     // const user = await User.findById(userId).populate("friendRequests", "name email avatar").lean();
     // const friendRequests = user.friendRequests;
 
-    const user = await User.findById(userId).populate("sentFriendRequests", "name email avatar").lean();
+    const user = await User.findById(userId).populate("sentFriendRequests", "name email avatar device_token isActive updatedAt");
+    // console.log('all users', user)
     const sentFriendRequests = user.sentFriendRequests;
 
     // console.log('sentFriendRequests', sentFriendRequests)
@@ -146,6 +147,37 @@ router.get("/sentfriend-requests", async (req, res) => {
   }
 })
 
+
+
+
+// Endpoint to get all users except friends
+router.get('/users-except-friends/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Find the user's friend list
+    const user = await User.findById(userId).populate("sentFriendRequests", "_id");
+
+    // console.log('my frid', user)
+
+    // Extract the friend IDs
+    const friendIds = user.sentFriendRequests.map(friend => friend._id);
+
+    friendIds.push(userId);
+
+    // console.log('my friendIds', friendIds)
+
+    // Find all users who are not friends
+    const usersExceptFriends = await User.find({ _id: { $nin: friendIds } })  .select('_id name');
+
+    // console.log('my usersExceptFriends', usersExceptFriends)
+
+    res.json(usersExceptFriends);
+  } catch (error) {
+    console.error('Error fetching users except friends:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 

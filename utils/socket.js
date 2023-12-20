@@ -81,7 +81,7 @@ module.exports.initIO = (app) => {
 
       delete newMessage._id;
 
-      // console.log('before store model', newMessage)
+      //  console.log('before store model', newMessage)
       const storeMessage = new Chat(newMessage);
 
       storeMessage.save((err) => {
@@ -92,7 +92,8 @@ module.exports.initIO = (app) => {
           // console.log('storeMessage', storeMessage)
 
           // Broadcast the new message to all connected clients
-           IO.to(newMessage?.chat_room_id).emit('newMessage', storeMessage);
+           IO.to(newMessage?._id).emit('newMessage', storeMessage);
+          //  IO.to(newMessage?.chat_room_id).emit('newMessage', storeMessage);
          // IO.emit('newMessage', storeMessage);
         }
       });
@@ -118,7 +119,7 @@ module.exports.initIO = (app) => {
 
           // console.log('store message', newMessage)
           // Broadcast the message to all users in the room
-           IO.to(data?.chat_room_id).emit('chat message', newMessage);
+          socket.to(data?.room).emit('chat message', newMessage);
           //IO.emit('chat message', newMessage);
         }
       });
