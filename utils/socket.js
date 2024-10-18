@@ -7,7 +7,7 @@ module.exports.initIO = (app) => {
 
   const httpServer = http.createServer(app);
 
-  httpServer.listen(9000, () => { console.log('socket server running at 9000') })
+//   httpServer.listen(9000, () => { console.log('socket server running at 9000') })
 
   IO = new Server(httpServer);
 
