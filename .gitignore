@@ -1,4 +1,4 @@
-# .env
+.env
 assets/
 .well-known/
 stderr.log

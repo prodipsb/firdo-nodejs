@@ -17,8 +17,8 @@ const fs = require("fs");
 
 
 router.get('/',(req,res)=>{
-  console.log("Frydo - no men land! conn")
-  res.send('Frydo - no men land!')
+  console.log("Daily Planner - no men land! conn")
+  res.send('Daily Planner - no men land!')
   res.end()
 })
 

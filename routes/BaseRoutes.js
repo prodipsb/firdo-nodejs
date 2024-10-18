@@ -433,7 +433,8 @@ router.get('/user/calendar/day/events',async (req,res)=>{
 
 
     { $match: { $expr : { $eq: [ '$user_id' , { $toObjectId: userId } ] } } },
-    { $match: { $expr : { $eq: [ '$date' , { $toDate :'2022-09-02T00:00:00.000Z'} ] } } },
+    { $match: { $expr : { $eq: [ '$date' , { $toDate :targetDate} ] } } },
+    // { $match: { $expr : { $eq: [ '$date' , { $toDate :'2022-09-02T00:00:00.000Z'} ] } } },
 
   //  { $match: { $expr : { $eq: [ '$date' ,{ 'date': '2022-09-02T00:00:00.000Z'}] }}},
   // { $match: { "date": "2022-09-02T00:00:00.000Z" } },
